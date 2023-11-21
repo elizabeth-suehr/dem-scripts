@@ -12,6 +12,17 @@ Current Projects
 - Sphere_Clump_Scaling:
 
 
+This repo has a submodule of private Fortran code, if you have access to this repo you can use 
+```
+git submodule update --init --recursive
+```
+
+and 
+```
+git submodule update --recursive --remote
+```
+to keep it updated
+
 
 
 
