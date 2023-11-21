@@ -1,0 +1,16 @@
+__pycache__
+.DS_Store
+*/.DS_Store
+*/*/.DS_Store
+*/*/*/.DS_Store
+*/*/*/cpi_files/*
+*/*/*/vtp_files/*
+
+RODS/liggghts_*
+RODS/fortran_*
+RODS/s_rod*
+
+CURLS/liggghts_*
+CURLS/fortran_*
+CURLS/s_curl*
+
