@@ -49,6 +49,7 @@ def curl_series_simulation_specific(i):
 
     simulation = lebc.ShearSimulation(particle_templete)
     simulation.auto_setup()
+    simulation.body_position_print_count = 2000
 
     simulation.relaxationtime = 0.05
 
@@ -81,8 +82,7 @@ def make_and_gen(remake_base_particle_shapes, make_vtk_files):
         simulation = curl_series_simulation_specific(i)
         # generate_fortran_files("extra_string_if_needed", include date in filename, is sbatch files high priority?)
         # simulation.generate_fortran_files()
-        simulation.auto_setup()
-        simulation.body_position_print_count = 2000
+
         simulation.generate_liggghts_files([4, 4, 2], random_orientation=False)
         if make_vtk_files:
             simulation.particletemplate.particle.legacy_vtk_printout()
@@ -131,25 +131,45 @@ def curl_series_projected_area():
 #             already_loaded=False)
 
 
-def curl_series_validate_all():
-    sphere_radius_distance = [8, 7, 6, 5, 4, 3, 2]
-    specific_runs = [0, 1, 2, 3, 4, 5, 6]
+# def curl_series_validate_all():
+#     sphere_radius_distance = [8, 7, 6, 5, 4, 3, 2]
+#     specific_runs =
+
+#     all_simuations = []
+#     for i in specific_runs:
+#         simulation = curl_series_simulation_specific(i)
+#         # simulation.liggghts_graph_stress_vs_volume_fraction(
+#         #     already_loaded=False)
+#         for j in range(len(simulation.volume_fractions)-2):
+#             simulation.liggghts_graph_stress_vs_time_specific(i)
+#         simulation.load_vf_vs_stress()
+
+#         all_simuations.append(simulation)
+
+#     all = lebc.SimulationCompare(all_simuations)
+#     all.stress_vs_vf_graph_compare(use_fortran=False, use_liggghts=True,
+#                                    general_folder_name="Curl_Stresses", series_name="curls")
+#     # all.print_lowest_volumefraction_stress()
+
+
+def curls_series_validate_all():
+    my_list = [0, 1, 2, 3, 4, 5, 6]
 
     all_simuations = []
-    for i in specific_runs:
-        simulation = curl_series_simulation_specific(i)
-        simulation.liggghts_graph_stress_vs_volume_fraction(
-            already_loaded=False)
+    for i in my_list:
+        aspect_ratio = i
+        simulation = curl_series_simulation_specific(aspect_ratio)
+
+        simulation.graph_liggghts_vs_fortran()
 
         all_simuations.append(simulation)
 
     all = lebc.SimulationCompare(all_simuations)
     all.stress_vs_vf_graph_compare(use_fortran=False, use_liggghts=True,
-                                   general_folder_name="Curl_Stresses", series_name="curls")
-    # all.print_lowest_volumefraction_stress()
+                                   general_folder_name="Curl_Series", series_name="curls")
+    all.print_lowest_volumefraction_stress()
 
 
 # make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
-# curl_series_validate_liggghts()
-# curl_series_validate_fortran()
-curl_series_validate_all()
+curls_series_validate_all()
+# curl_series_projected_area()
