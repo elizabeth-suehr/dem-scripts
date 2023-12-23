@@ -158,8 +158,8 @@ def rod_series_validate_all():
         all_simuations.append(simulation)
 
     all = lebc.SimulationCompare(all_simuations)
-    all.graph_compare(use_fortran=False, use_liggghts=True,
-                      general_folder_name="Rod_Series", series_name="rods")
+    all.stress_vs_vf_graph_compare(use_fortran=False, use_liggghts=True,
+                                   general_folder_name="Rod_Series", series_name="rods")
     all.print_lowest_volumefraction_stress()
 
 
@@ -241,7 +241,7 @@ def random_angle_validate_fortran():
 # rod_series_liggghts_init_to_fortran()
 # rod_series_validate_liggghts()
 # rod_series_validate_fortran()
-rod_series_validate_all()
+# rod_series_validate_all()
 
 # Run This first, then after liggghts had mode files
 # random_angle_liggghts_and_fortran()

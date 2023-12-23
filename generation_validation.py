@@ -219,6 +219,40 @@ class Particle(object):
             )
         return returnstring
 
+    def legacy_vtk_printout(self):
+        # vtk DataFile Version 2.0
+        try:
+            file = open('legacy_'+self.file_data_name+'.vtk', "w")
+        except:
+            print("[Error] can not create " +
+                  'legacy_'+self.file_data_name+'.vtk')
+            return False
+
+        with file:
+
+            # Header for vtk file
+            file.write('# vtk DataFile Version 2.0\n')
+            file.write(
+                'Unstructured grid legacy vtk file with point scalar data\nASCII\n\nDATASET UNSTRUCTURED_GRID\n')
+
+            # str here it total number of data points
+            file.write('POINTS ' + str(len(self.r)) + ' double\n')
+
+            # Writes out Each Non Zero Sphere position
+            for (x, y, z) in zip(self.x, self.y, self.z):
+                file.write(str(x) + ' ' + str(y) + ' ' + str(z) + '\n')
+
+            # Header for Sphere Radius
+            file.write('\nPOINT_DATA ' + str(len(self.r)) +
+                       '\nSCALARS radii double\nLOOKUP_TABLE default\n')
+
+            # Writes out Each Non Zero Sphere Radius
+            for r in self.r:
+                file.write("{0}\n".format(r))
+
+            # End of Script
+            file.close()
+
     def load_or_create_multisphere(self, filename, density=2500.0, repeat_count=200_000_000, is_centered=False, needs_rotated=False, is_point_mass=False, delta_cutoff=1e-8):
         # self.type = ParticleType.MULTISPHERE
         if not self.load_multisphere(filename):
@@ -1075,7 +1109,7 @@ class ShearSimulation(object):
         file.write(sbatch_partition)
         file.write(sbatch_start_mid)
         file.write("module use /home/suehr/module_files/\n")
-        file.write("module load openmpi/1.6.5\n")
+        file.write("module load openmpi/4.1.5\n")
         file.write("module load vtk\n")
         file.write(sbatch_start_end)
 
@@ -1887,7 +1921,7 @@ class SimulationCompare(object):
             print("vf= ", simulation.volume_fractions[0],
                   " normal", i, "= ", lowest_yy, " shear", i, "= ", lowest_xy)
 
-    def graph_compare(self, use_fortran=True, use_liggghts=True, general_folder_name="", series_name=""):
+    def stress_vs_vf_graph_compare(self, use_fortran=True, use_liggghts=True, general_folder_name="", series_name=""):
         if general_folder_name == "":
             general_folder_name = "series_" + \
                 self.simulations[0].root_folder_name
@@ -1968,3 +2002,160 @@ class SimulationCompare(object):
         plt.savefig(general_folder_name + "/shear_stress_vs_vf_{}.pdf".format(
             series_name))
         plt.close(1)
+
+    def effective_projected_area(self, use_fortran=False, use_liggghts=True, general_folder_name="", series_name="", test_lowest_vf_count=0):
+        if general_folder_name == "":
+            general_folder_name = "effective_projected_area_" + \
+                self.simulations[0].root_folder_name
+        if series_name == "":
+            series_name = "effective_projected_area_" + \
+                self.simulations[0].particletemplate.particle.file_shape_name
+
+        try:
+            os.makedirs(general_folder_name)
+            import overlapping_circles as oc
+        except OSError:
+            # print(OSError)
+            print("General folder name for effective_projected_area already exists")
+
+        if use_liggghts:
+            for simulation in self.simulations:
+                # Assumes only one size radii per simulation
+                radius = simulation.particletemplate.particle.r[0]
+
+                ave_effective_projected_area = []
+                stress = []
+                for i in range(test_lowest_vf_count, test_lowest_vf_count+1):
+                    ligghts_folder = 'liggghts_'+simulation.root_folder_name
+                    vtk_folder = 'vtk_'+simulation.root_folder_name + \
+                        '_'
+
+                    start = int(0.3 * simulation.cycle_count) * \
+                        simulation.body_position_print_count
+
+                    projected_area = []
+                    for j in range(start, simulation.cycle_count, simulation.body_position_print_count):
+                        try:
+                            file = open(ligghts_folder + vtk_folder +
+                                        str(i) + '/'+str(j)+'.vtk', "r")
+                        except OSError:
+                            # print(OSError)
+                            print("Could not find:" + ligghts_folder +
+                                  vtk_folder + str(i) + '/'+str(j)+'.vtk')
+                            continue
+
+                        particles_positions = np.empty(
+                            (simulation.particle_count[i] * len(simulation.particletemplate.particle.r), 3))
+                        multisphere_ids = np.zeros(
+                            (simulation.particle_count[i] * len(simulation.particletemplate.particle.r)))
+                        with file:
+
+                            # how many non-data lines there are at the beginning
+                            for k in range(5):
+                                file.readline()
+
+                            # Collect positions of all the atoms
+                            k = 0
+                            while k < simulation.particle_count[i] * len(simulation.particletemplate.particle.r):
+                                stringvalues = file.readline().split()
+                                particles_positions[k][0] = float(
+                                    stringvalues[0])
+                                particles_positions[k][1] = float(
+                                    stringvalues[1])
+                                particles_positions[k][2] = float(
+                                    stringvalues[2])
+                                k += 1
+
+                            # Get to multisphere_id data
+                            line = file.readline()
+                            while line.split()[0] != 'id_multisphere':
+                                line = file.readline()
+
+                            # Collect multisphere_ids data
+                            k = 0
+                            while k < simulation.particle_count[i] * len(simulation.particletemplate.particle.r):
+                                stringvalues = line.split()
+                                for (i, s) in enumerate(stringvalues):
+                                    multisphere_ids[k + i] = int(s)
+                                line = file.readline()
+                                k += len(stringvalues)
+
+                        particles = np.empty(
+                            (simulation.particle_count[i], len(simulation.particletemplate.particle.r), 3))
+                        fill_count = np.zeros(
+                            (simulation.particle_count[i], len(simulation.particletemplate.particle.r)))
+
+                        for j in range(simulation.particle_count[i] * len(simulation.particletemplate.particle.r)):
+                            m_id = multisphere_ids[j]
+                            fill_count[m_id-1] += 1
+                            particles[m_id-1][fill_count[m_id-1]
+                                              ][0] = particles_positions[j][0]
+                            particles[m_id-1][fill_count[m_id-1]
+                                              ][1] = particles_positions[j][1]
+                            particles[m_id-1][fill_count[m_id-1]
+                                              ][2] = particles_positions[j][2]
+                        for j in range(simulation.particle_count[i]):
+                            nodes = []
+                            radii = []
+                            for k in range(len(simulation.particletemplate.particle.r)):
+                                nodes.append(
+                                    [particles[j][k][2], particles[j][3]])
+                                radii.append(radius)
+
+                            nodes = np.array(nodes)
+                            radii = np.array(radius)
+
+                            area = oc.getArea(nodes, radius)
+                            projected_area.append(area)
+
+                equiv_radius = simulation.particletemplate.particle.equvi_diameter / 2.0
+                sphere_projected_area = 4./3. * math.pi * equiv_radius**3
+                ave_effective_projected_area.append(
+                    np.mean(projected_area)**-2/sphere_projected_area**-2)
+
+                stress_yy = simulation.l_normal_stress_ave[i] / (simulation.particletemplate.particle.density *
+                                                                 simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2)
+                stress_xy = simulation.l_shear_stress_ave[i] / (simulation.particletemplate.particle.density *
+                                                                simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2)
+
+            plt.figure(1)
+            plt.ylabel("$(σ_{yy}) / (ρd_{v}^{2} γ^{2})$")
+            plt.xlabel("Effective Projected Area")
+            plt.plot(ave_effective_projected_area, stress_yy, 'rs', linewidth=1,
+                     label="Normal Effective Projected Area")
+
+            plt.legend()
+            plt.savefig(general_folder_name +
+                        "/eff_proj_area_yy_{}.pdf".format(series_name))
+            plt.close(1)
+
+            plt.figure(1)
+            plt.ylabel("$(σ_{xy}) / (ρd_{v}^{2} γ^{2})$")
+            plt.xlabel("Effective Projected Area")
+            plt.plot(ave_effective_projected_area, stress_xy, 'rs', linewidth=1,
+                     label="Shear Effective Projected Area")
+            plt.legend()
+            plt.savefig(general_folder_name + "/eff_proj_area_xy_{}.pdf".format(
+                series_name))
+            plt.close(1)
+
+            # quat = random_quaternion()
+
+    # for j in range(len(new3d_points)):
+    #     new3d_points[j] = point_rotation_by_quaternion(new3d_points[j], quat)
+
+    # points = np.empty((5, 3))
+
+    # nodes = []
+    # radiuses = []
+
+    # for j in range(len(new3d_points)):
+    #     nodes.append([new3d_points[j][2], new3d_points[j][3]])
+    #     radiuses.append(radius)
+
+    # nodes = np.array(nodes)
+    # radiuses = np.array(radiuses)
+
+    # area = oc.getArea(nodes, radiuses)
+    # projected_area.append(area)
+    # # print(area)
