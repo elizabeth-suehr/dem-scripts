@@ -1033,7 +1033,7 @@ class ShearSimulation(object):
                 self.shearstrainrate, "true", 1e-9, self.stress_print_count[i]))
 
         if self.body_position_print_count > 0:
-            fout.write('fix              dump vtkfiles all atom/vtk {0} {1}\n'.format(
+            fout.write('fix              dump all atom/vtk {0} {1}\n'.format(
                 self.body_position_print_count, ('vtk_'+self.root_folder_name + '_' + str(i) + '/*.vtk')))
         fout.write('run               {0}\n'.format(self.cycle_count[i]))
 
