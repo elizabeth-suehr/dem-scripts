@@ -1550,6 +1550,7 @@ class ShearSimulation(object):
                      linewidth=4, label='Kinetic Theory')
         plt.plot(volume_fractions, normal_stress_ave / (self.particletemplate.particle.density *
                                                         self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=1, label="Normal " + self.particletemplate.particle.file_shape_name)
+
         self.add_literature_data_to_graph(True)
         plt.savefig(fortran_root_name +
                     "/normal_stress_vs_vf_{}.pdf".format(self.particletemplate.particle.file_shape_name))
@@ -1710,7 +1711,7 @@ class ShearSimulation(object):
             if filestr == "curl_5":
                 plt.semilogy(curl_vf, curl_5_yy, '*',
                              color=color, label='Suehr: curl_5')
-            if filestr == "curl_0" or filestr == "rod5":
+            if filestr == "curl0" or filestr == "rod5":
                 plt.semilogy(curl_vf, curl_0_yy, '*', color=color,
                              label='Suehr: curl_0 or rod5')
         else:

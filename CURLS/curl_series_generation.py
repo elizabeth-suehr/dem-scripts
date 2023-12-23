@@ -49,13 +49,14 @@ def curl_series_simulation_specific(i):
 
     simulation = lebc.ShearSimulation(particle_templete)
     simulation.auto_setup()
+    simulation.cycle_count = int(simulation.cycle_count*1.2)
     simulation.body_position_print_count = 2000
 
-    simulation.relaxationtime = 0.05
+    simulation.relaxationtime = 0.025
 
     simulation.hasdate_in_foldername = False
     simulation.is_sbatch_high_priority = False
-    simulation.sbatch_time = "20-00:00:00"
+    simulation.sbatch_time = "2-00:00:00"
     simulation.use_liggghts_for_filling = True
 
     return simulation
@@ -160,7 +161,7 @@ def curls_series_validate_all():
         aspect_ratio = i
         simulation = curl_series_simulation_specific(aspect_ratio)
 
-        simulation.graph_liggghts_vs_fortran()
+        simulation.load_vf_vs_stress(use_fortran=False, use_liggghts=True)
 
         all_simuations.append(simulation)
 
