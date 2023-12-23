@@ -80,7 +80,8 @@ def make_and_gen(remake_base_particle_shapes):
         # Load Particle data into lebc.Particle
         simulation = curl_series_simulation_specific(i)
         # generate_fortran_files("extra_string_if_needed", include date in filename, is sbatch files high priority?)
-        simulation.generate_fortran_files()
+        # simulation.generate_fortran_files()
+        simulation.auto_setup()
         simulation.generate_liggghts_files([4, 4, 2], random_orientation=False)
 
 

@@ -146,18 +146,21 @@ def rod_series_validate_fortran():
 
 
 def rod_series_validate_all():
-    my_list = [2, 4, 6]
+    my_list = [2, 3, 4, 5, 6]
 
     all_simuations = []
     for i in my_list:
         aspect_ratio = i
         simulation = rod_series_simulation_specific(aspect_ratio)
+
         simulation.graph_liggghts_vs_fortran()
+
         all_simuations.append(simulation)
 
     all = lebc.SimulationCompare(all_simuations)
-    all.graph_compare(use_fortran=True, use_liggghts=True,
+    all.graph_compare(use_fortran=False, use_liggghts=True,
                       general_folder_name="Rod_Series", series_name="rods")
+    all.print_lowest_volumefraction_stress()
 
 
 def rod6_random_angle_simulation():

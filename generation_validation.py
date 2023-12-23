@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 ###############################################################################
 # Random math functions
 
-
+# Taken from LIGGGHTS, guessing was in LAMMPS
 def exyz_to_q(ex, ey, ez):
     # squares of quaternion components
 
@@ -1032,6 +1032,9 @@ class ShearSimulation(object):
             fout.write('fix               leboundary all lebc {0} {1} gtemp {2} ave_reset {3}\n'.format(
                 self.shearstrainrate, "true", 1e-9, self.stress_print_count[i]))
 
+        if self.body_position_print_count > 0:
+            fout.write('fix              dump vtkfiles all atom/vtk {0} {1}\n'.format(
+                self.body_position_print_count, ('vtk_'+self.root_folder_name + '_' + str(i) + '/*.vtk')))
         fout.write('run               {0}\n'.format(self.cycle_count[i]))
 
         fout.close()
@@ -1873,6 +1876,17 @@ class SimulationCompare(object):
     def __init__(self, simulations):
         self.simulations = simulations
 
+    def print_lowest_volumefraction_stress(self):
+        for (i, simulation) in enumerate(self.simulations):
+            lowest_yy = (simulation.l_normal_stress_ave[0]) / (simulation.particletemplate.particle.density *
+                                                               simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2)
+
+            lowest_xy = (simulation.l_shear_stress_ave[0]) / (simulation.particletemplate.particle.density *
+                                                              simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2)
+
+            print("vf= ", simulation.volume_fractions[0],
+                  " normal", i, "= ", lowest_yy, " shear", i, "= ", lowest_xy)
+
     def graph_compare(self, use_fortran=True, use_liggghts=True, general_folder_name="", series_name=""):
         if general_folder_name == "":
             general_folder_name = "series_" + \
@@ -1889,17 +1903,18 @@ class SimulationCompare(object):
 
         # First we need to load all the data
         for simulation in self.simulations:
-            # Clear all the data
-            simulation.clear_liggghts_data()
-            simulation.clear_fortran_data()
-            # Load all the data! (and remake stress vs time graphs into their respective folders)
-            simulation.ligghts_graph_stress_vs_time(
-                additional_save_path=general_folder_name)
-            simulation.fortran_graph_stress_vs_time(
-                additional_save_path=general_folder_name)
-
-            simulation.load_vf_vs_stress(
-                use_fortran, use_liggghts)
+            # # Clear all the data
+            # simulation.clear_liggghts_data()
+            # simulation.clear_fortran_data()
+            # # Load all the data! (and remake stress vs time graphs into their respective folders)
+            # simulation.load_vf_vs_stress(
+            #     use_liggghts=use_liggghts, use_fortran=use_fortran)
+            if use_liggghts:
+                simulation.ligghts_graph_stress_vs_time(
+                    additional_save_path=general_folder_name)
+            if use_fortran:
+                simulation.fortran_graph_stress_vs_time(
+                    additional_save_path=general_folder_name)
 
         # We are only using the first simulation to get the monodisperse data
         vfLunmono, pnLunmono, snLunmono, _coldissipation = self.simulations[0].monodisperse_compute(
@@ -1918,13 +1933,13 @@ class SimulationCompare(object):
             plt.ylabel("$(σ_{yy}) / (ρd_{v}^{2} γ^{2})$")
             plt.xlabel("Solid volume fraction (ν)")
 
-            if use_fortran:
-                plt.plot(simulation.f_volume_fractions, simulation.f_normal_stress_ave / (simulation.particletemplate.particle.density *
-                                                                                          simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[0], linewidth=1, linestyle='dashed', label="Fortran Normal " + simulation.particletemplate.particle.file_shape_name)
+            # if use_fortran:
+            #     plt.plot(simulation.f_volume_fractions, simulation.f_normal_stress_ave / (simulation.particletemplate.particle.density *
+            #                                                                               simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[0], linewidth=1, linestyle='dashed', label="Fortran Normal " + simulation.particletemplate.particle.file_shape_name)
 
-            if use_liggghts:
-                plt.plot(simulation.l_volume_fractions, simulation.l_normal_stress_ave / (simulation.particletemplate.particle.density *
-                                                                                          simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[1], linewidth=1, linestyle='dotted', label="LIGGGHTS Normal " + simulation.particletemplate.particle.file_shape_name)
+            # if use_liggghts:
+            plt.plot(simulation.l_volume_fractions, simulation.l_normal_stress_ave / (simulation.particletemplate.particle.density *
+                                                                                      simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[1], linewidth=1, linestyle='dotted', label="LIGGGHTS Normal " + simulation.particletemplate.particle.file_shape_name)
 
             simulation.add_literature_data_to_graph(
                 is_normal=True,  color=colors[i])
@@ -1952,5 +1967,4 @@ class SimulationCompare(object):
         plt.legend()
         plt.savefig(general_folder_name + "/shear_stress_vs_vf_{}.pdf".format(
             series_name))
-
         plt.close(1)
