@@ -513,6 +513,7 @@ class ShearSimulation(object):
         self.relaxationtime = 0
         self.delta_time = 0.0
         self.cycle_count = []
+        self.cycle_delay = []
         self.stress_print_count = []
         self.save_count = 0
         self.body_position_print_count = 0
@@ -564,7 +565,8 @@ class ShearSimulation(object):
 
         self.relaxationtime = 0.1
 
-        self.cycle_count = [40e6, 30e6, 20e6, 15e6, 15e6, 10e6, 10e6, 10e6]
+        self.cycle_count = [40e6, 30e6, 30e6, 20e6, 20e6, 20e6, 20e6, 20e6]
+        self.cycle_delay = [30e6, 20e6, 20e6, 10e6, 10e6, 10e6, 10e6, 10e6]
         self.stress_print_count = [100000, 100000,
                                    50000, 50000, 50000, 30000, 30000, 30000]
         self.body_position_print_count = 10000
@@ -1066,10 +1068,15 @@ class ShearSimulation(object):
             fout.write('fix               leboundary all lebc {0} {1} gtemp {2} ave_reset {3}\n'.format(
                 self.shearstrainrate, "true", 1e-9, self.stress_print_count[i]))
 
+        fout.write('run               {0}\n'.format(
+            int(self.cycle_delay[i])))
+
         if self.body_position_print_count > 0:
             fout.write('dump               dmpvtk all custom/vtk {0} {1} id id_multisphere x y z vx vy vz\n'.format(
                 self.body_position_print_count, ('vtk_'+self.root_folder_name + '_' + str(i) + '/*.vtk')))
-        fout.write('run               {0}\n'.format(self.cycle_count[i]))
+
+        fout.write('run               {0}\n'.format(
+            int(self.cycle_count[i] - self.cycle_delay[i])))
 
         fout.close()
 
@@ -2031,11 +2038,11 @@ class SimulationCompare(object):
                     vtk_folder = 'vtk_'+simulation.root_folder_name + \
                         '_'
 
-                    start = int(0.3 * simulation.cycle_count) * \
+                    start = int(0.3 * simulation.cycle_count[i]) * \
                         simulation.body_position_print_count
 
                     projected_area = []
-                    for j in range(start, simulation.cycle_count, simulation.body_position_print_count):
+                    for j in range(start, simulation.cycle_count[i], simulation.body_position_print_count):
                         try:
                             file = open(ligghts_folder + vtk_folder +
                                         str(i) + '/'+str(j)+'.vtk', "r")
