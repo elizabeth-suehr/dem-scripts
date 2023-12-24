@@ -49,9 +49,8 @@ def curl_series_simulation_specific(i):
 
     simulation = lebc.ShearSimulation(particle_templete)
     simulation.auto_setup()
-    simulation.cycle_count = int(simulation.cycle_count*1.5)
+    simulation.cycle_count = 2 * simulation.cycle_count
     simulation.body_position_print_count = 2000
-
     simulation.relaxationtime = 0.025
 
     simulation.hasdate_in_foldername = False

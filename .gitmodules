@@ -1,6 +1,4 @@
 [submodule "submodules/fortran-codes"]
 	path = submodules/fortran-codes
 	url = git@github.com:elizabeth-suehr/fortran-codes.git
-[submodule "dem-scripts"]
-	path = dem-scripts
-	url = git@github.com:elizabeth-suehr/dem-scripts.git
+
