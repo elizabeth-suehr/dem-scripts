@@ -506,6 +506,7 @@ class ShearSimulation(object):
         self.particle_count = []
         self.particletemplate = particletemplate
 
+        self.scale_domain = 1.05
         self.domain = np.zeros((2, 3), dtype=np.float64)
         self.domain_volume = 0.0
         self.shearstrainrate = 0.0
@@ -565,15 +566,15 @@ class ShearSimulation(object):
 
         self.relaxationtime = 0.1
 
-        self.cycle_count = [40e6, 30e6, 30e6, 20e6, 20e6, 20e6, 20e6, 20e6]
-        self.cycle_delay = [30e6, 20e6, 20e6, 10e6, 10e6, 10e6, 10e6, 10e6]
+        self.cycle_count = [50e6, 40e6, 40e6, 30e6, 30e6, 30e6, 30e6, 30e6]
+        self.cycle_delay = [25e6, 15e6, 15e6, 5e6, 5e6, 5e6, 5e6, 5e6]
         self.stress_print_count = [100000, 100000,
                                    50000, 50000, 50000, 30000, 30000, 30000]
         self.body_position_print_count = 10000
         self.save_count = 1000000
 
         # Uses equvialent volume diameter to size the domain
-        e_v_d = self.particletemplate.particle.equvi_diameter * 1.05
+        e_v_d = self.particletemplate.particle.equvi_diameter * self.scale_domain
 
         self.domain[0][0] = 0.0
         self.domain[0][1] = 0.0
@@ -1741,7 +1742,7 @@ class ShearSimulation(object):
                 plt.semilogy(curl_vf, curl_0_xy, '*', color=color,
                              label='Suehr: curl_0 or rod5')
 
-    def load_vf_vs_stress(self, use_fortran=True, use_liggghts=True):
+    def load_vf_vs_stress(self, use_fortran=True, use_liggghts=True, max_volumefraction=0):
         if use_fortran:
             # FORTRAN SECTION
             volume_fractions = self.fortran_loaded_volume_fraction
@@ -1751,6 +1752,9 @@ class ShearSimulation(object):
 
             pop_count = 0
             for i, (k_normal_stress, c_normal_stress, k_shear_stress, c_shear_stress) in enumerate(zip(self.fortran_kinetic_normal_stress, self.fortran_collisional_normal_stress, self.fortran_kinetic_shear_stress, self.fortran_collisional_shear_stress)):
+
+                if max_volumefraction != 0 and i >= max_volumefraction:
+                    continue
 
                 normal_stresses = k_normal_stress + c_normal_stress
                 shear_stresses = k_shear_stress + c_shear_stress
@@ -1781,6 +1785,9 @@ class ShearSimulation(object):
 
             pop_count = 0
             for i, (k_normal_stress, c_normal_stress, k_shear_stress, c_shear_stress) in enumerate(zip(self.liggghts_kinetic_normal_stress, self.liggghts_collisional_normal_stress, self.liggghts_kinetic_shear_stress, self.liggghts_collisional_shear_stress)):
+
+                if max_volumefraction != 0 and i >= max_volumefraction:
+                    continue
 
                 normal_stresses = k_normal_stress + c_normal_stress
                 shear_stresses = k_shear_stress + c_shear_stress
@@ -1918,16 +1925,16 @@ class SimulationCompare(object):
     def __init__(self, simulations):
         self.simulations = simulations
 
-    def print_lowest_volumefraction_stress(self):
-        for (i, simulation) in enumerate(self.simulations):
-            lowest_yy = (simulation.l_normal_stress_ave[0]) / (simulation.particletemplate.particle.density *
-                                                               simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2)
+    # def print_lowest_volumefraction_stress(self):
+    #     for (i, simulation) in enumerate(self.simulations):
+    #         lowest_yy = (simulation.l_normal_stress_ave[0]) / (simulation.particletemplate.particle.density *
+    #                                                            simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2)
 
-            lowest_xy = (simulation.l_shear_stress_ave[0]) / (simulation.particletemplate.particle.density *
-                                                              simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2)
+    #         lowest_xy = (simulation.l_shear_stress_ave[0]) / (simulation.particletemplate.particle.density *
+    #                                                           simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2)
 
-            print("vf= ", simulation.volume_fractions[0],
-                  " normal", i, "= ", lowest_yy, " shear", i, "= ", lowest_xy)
+    #         print("vf= ", simulation.volume_fractions[0],
+    #               " normal", i, "= ", lowest_yy, " shear", i, "= ", lowest_xy)
 
     def stress_vs_vf_graph_compare(self, use_fortran=True, use_liggghts=True, general_folder_name="", series_name=""):
         if general_folder_name == "":
