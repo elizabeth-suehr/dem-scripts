@@ -48,8 +48,10 @@ def curl_series_simulation_specific(i):
     # Generate Simulation
 
     simulation = lebc.ShearSimulation(particle_templete)
+    simulation.scale_domain = 1.2
     simulation.auto_setup()
     simulation.cycle_count = 2 * simulation.cycle_count
+
     simulation.body_position_print_count = 2000
     simulation.relaxationtime = 0.025
 
@@ -167,9 +169,10 @@ def curls_series_validate_all():
     all = lebc.SimulationCompare(all_simuations)
     all.stress_vs_vf_graph_compare(use_fortran=False, use_liggghts=True,
                                    general_folder_name="Curl_Series", series_name="curls")
-    all.print_lowest_volumefraction_stress()
+    # all.print_lowest_volumefraction_stress()
 
 
 # make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
+# curl_series_validate_liggghts()
 curls_series_validate_all()
 # curl_series_projected_area()
