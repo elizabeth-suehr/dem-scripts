@@ -1315,13 +1315,12 @@ class ShearSimulation(object):
             plt.ylabel("$(σ) / (ρd_{v}^{2} γ^{2})$")
             plt.xlabel("Dimensionless Time ($\.γ$t)")
 
-            n_length = len(kinetic_normal_stress) // 3 * \
+            n_length = 2 * len(kinetic_normal_stress) // 3 * \
                 self.stress_print_count[i] * \
                 self.delta_time * self.relaxationtime * self.shearstrainrate
             s_length = len(kinetic_shear_stress) // 3
-            plt.semilogy([n_length, n_length], [(np.min(kinetic_normal_stress + collisional_normal_stress) / (self.particletemplate.particle.density *
-                         self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2)), (np.max(kinetic_normal_stress + collisional_normal_stress) / (self.particletemplate.particle.density *
-                                                                                                                                                                     self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2))])
+            plt.semilogy([n_length, n_length], [(np.max(kinetic_normal_stress + collisional_normal_stress) / 100 / (self.particletemplate.particle.density * self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2)),
+                         (np.max(kinetic_normal_stress + collisional_normal_stress) / (self.particletemplate.particle.density * self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2))])
 
             plt.semilogy(time * self.shearstrainrate, (kinetic_normal_stress + collisional_normal_stress) / (self.particletemplate.particle.density *
                          self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), label="Normal " + self.particletemplate.particle.file_shape_name + " vf " + str(volume_fraction))
@@ -1364,8 +1363,8 @@ class ShearSimulation(object):
             normal_stresses = k_normal_stress + c_normal_stress
             shear_stresses = k_shear_stress + c_shear_stress
 
-            n_length = len(normal_stresses) // 3
-            s_length = len(shear_stresses) // 3
+            n_length = len(normal_stresses) // 3 * 2
+            s_length = len(shear_stresses) // 3 * 2
 
             if n_length < 10:
                 print("Warning: averaging over <10 values")
@@ -1378,6 +1377,10 @@ class ShearSimulation(object):
         normal_stress_ave = np.array(normal_stress_ave)
         shear_stress_ave = np.array(shear_stress_ave)
         volume_fractions = np.array(volume_fractions)
+
+        self.l_normal_stress_ave = normal_stress_ave
+        self.l_shear_stress_ave = shear_stress_ave
+        self.l_volume_fractions = volume_fractions
 
         vfLunmono, pnLunmono, snLunmono, _coldissipation = self.monodisperse_compute()
 
@@ -1738,7 +1741,7 @@ class ShearSimulation(object):
             if filestr == "curl_5":
                 plt.semilogy(curl_vf, curl_3_xy, '*',
                              color=color, label='Suehr: curl_5')
-            if filestr == "curl_0" or filestr == "rod5":
+            if filestr == "curl0" or filestr == "rod5":
                 plt.semilogy(curl_vf, curl_0_xy, '*', color=color,
                              label='Suehr: curl_0 or rod5')
 
@@ -1753,8 +1756,8 @@ class ShearSimulation(object):
             pop_count = 0
             for i, (k_normal_stress, c_normal_stress, k_shear_stress, c_shear_stress) in enumerate(zip(self.fortran_kinetic_normal_stress, self.fortran_collisional_normal_stress, self.fortran_kinetic_shear_stress, self.fortran_collisional_shear_stress)):
 
-                if max_volumefraction != 0 and i >= max_volumefraction:
-                    continue
+                # if max_volumefraction != 0 and i >= max_volumefraction:
+                #     continue
 
                 normal_stresses = k_normal_stress + c_normal_stress
                 shear_stresses = k_shear_stress + c_shear_stress
@@ -1768,9 +1771,10 @@ class ShearSimulation(object):
                     continue
 
                 normal_stress_ave.append(
-                    np.mean(normal_stresses[n_length:]))
+                    np.mean(normal_stresses[:n_length]))
+
                 shear_stress_ave.append(abs(
-                    np.mean(np.abs(shear_stresses[s_length:]))))
+                    np.mean(np.abs(shear_stresses[:s_length]))))
 
             self.f_normal_stress_ave = np.array(normal_stress_ave)
             self.f_shear_stress_ave = np.array(shear_stress_ave)
@@ -1786,8 +1790,8 @@ class ShearSimulation(object):
             pop_count = 0
             for i, (k_normal_stress, c_normal_stress, k_shear_stress, c_shear_stress) in enumerate(zip(self.liggghts_kinetic_normal_stress, self.liggghts_collisional_normal_stress, self.liggghts_kinetic_shear_stress, self.liggghts_collisional_shear_stress)):
 
-                if max_volumefraction != 0 and i >= max_volumefraction:
-                    continue
+                # if max_volumefraction != 0 and i >= max_volumefraction:
+                #     continue
 
                 normal_stresses = k_normal_stress + c_normal_stress
                 shear_stresses = k_shear_stress + c_shear_stress
@@ -1952,18 +1956,18 @@ class SimulationCompare(object):
 
         # First we need to load all the data
         for simulation in self.simulations:
-            # # Clear all the data
-            # simulation.clear_liggghts_data()
-            # simulation.clear_fortran_data()
-            # # Load all the data! (and remake stress vs time graphs into their respective folders)
-            # simulation.load_vf_vs_stress(
-            #     use_liggghts=use_liggghts, use_fortran=use_fortran)
+            #     # # Clear all the data
+            #     # simulation.clear_liggghts_data()
+            #     # simulation.clear_fortran_data()
+            #     # Load all the data! (and remake stress vs time graphs into their respective folders)
             if use_liggghts:
                 simulation.ligghts_graph_stress_vs_time(
                     additional_save_path=general_folder_name)
             if use_fortran:
                 simulation.fortran_graph_stress_vs_time(
                     additional_save_path=general_folder_name)
+            simulation.load_vf_vs_stress(
+                use_liggghts=use_liggghts, use_fortran=use_fortran)
 
         # We are only using the first simulation to get the monodisperse data
         vfLunmono, pnLunmono, snLunmono, _coldissipation = self.simulations[0].monodisperse_compute(
