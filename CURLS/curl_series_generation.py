@@ -173,5 +173,7 @@ def curls_series_validate_all():
 
 
 # make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
-curl_series_validate_liggghts()
-curls_series_validate_all()
+# curl_series_validate_liggghts()
+# curls_series_validate_all()
+curl_series_projected_area()
+# lebc.plot_color_maps()

@@ -6,12 +6,20 @@ import os
 from datetime import date
 import fortranformat as ff
 import matplotlib.pyplot as plt
-
+from matplotlib import cm
+from numpy import linspace
+import matplotlib.lines
+from matplotlib.transforms import Bbox, TransformedBbox
+from matplotlib.legend_handler import HandlerBase
+from matplotlib.image import BboxImage
+from matplotlib import rc, rcParams
 
 ###############################################################################
 # Random math functions
 
 # Taken from LIGGGHTS, guessing was in LAMMPS
+
+
 def exyz_to_q(ex, ey, ez):
     # squares of quaternion components
 
@@ -1716,13 +1724,13 @@ class ShearSimulation(object):
             if filestr == "rod6":
                 plt.semilogy(rod6_vf, rod6_normal, '*',
                              color=color, label='Guo: rod6')
-            if filestr == "curl_3":
-                plt.semilogy(curl_vf, curl_3_yy, '*',
-                             color=color, label='Suehr: curl_3')
-            if filestr == "curl_5":
-                plt.semilogy(curl_vf, curl_5_yy, '*',
-                             color=color, label='Suehr: curl_5')
-            if filestr == "curl0" or filestr == "rod5":
+            # if filestr == "curl_3":
+            #     plt.semilogy(curl_vf, curl_3_yy, '*',
+            #                  color=color, label='Suehr: curl_3')
+            # if filestr == "curl_5":
+            #     plt.semilogy(curl_vf, curl_5_yy, '*',
+            #                  color=color, label='Suehr: curl_5')
+            if filestr == "rod5":
                 plt.semilogy(curl_vf, curl_0_yy, '*', color=color,
                              label='Suehr: curl_0 or rod5')
         else:
@@ -1735,13 +1743,13 @@ class ShearSimulation(object):
             if filestr == "rod6":
                 plt.semilogy(rod6_vf, rod6_vis, '*',
                              color=color, label='Guo: rod6')
-            if filestr == "curl_3":
-                plt.semilogy(curl_vf, curl_3_xy, '*',
-                             color=color, label='Suehr: curl_3')
-            if filestr == "curl_5":
-                plt.semilogy(curl_vf, curl_3_xy, '*',
-                             color=color, label='Suehr: curl_5')
-            if filestr == "curl0" or filestr == "rod5":
+            # if filestr == "curl_3":
+            #     plt.semilogy(curl_vf, curl_3_xy, '*',
+            #                  color=color, label='Suehr: curl_3')
+            # if filestr == "curl_5":
+            #     plt.semilogy(curl_vf, curl_3_xy, '*',
+            #                  color=color, label='Suehr: curl_5')
+            if filestr == "rod5":
                 plt.semilogy(curl_vf, curl_0_xy, '*', color=color,
                              label='Suehr: curl_0 or rod5')
 
@@ -1804,10 +1812,33 @@ class ShearSimulation(object):
                     pop_count += 1
                     continue
 
-                normal_stress_ave.append(
-                    np.mean(normal_stresses[n_length:]))
-                shear_stress_ave.append(abs(
-                    np.mean(np.abs(shear_stresses[s_length:]))))
+                # Temp Fixes for Curl data, ignoring spikes in stress
+                if self.particletemplate.particle.file_shape_name == "curl2" and i == 3:
+                    normal_stress_ave.append(
+                        np.mean(normal_stresses[n_length:-n_length]))
+                    shear_stress_ave.append(abs(
+                        np.mean(np.abs(shear_stresses[s_length:-n_length]))))
+                elif self.particletemplate.particle.file_shape_name == "curl5" and i == 5:
+                    normal_stress_ave.append(
+                        np.mean(normal_stresses[n_length//2:-n_length*2]))
+                    shear_stress_ave.append(abs(
+                        np.mean(np.abs(shear_stresses[s_length//2:-n_length*2]))))
+                elif self.particletemplate.particle.file_shape_name == "curl2" and i == 7:
+                    normal_stress_ave.append(
+                        np.mean(normal_stresses[n_length:]))
+                    shear_stress_ave.append(abs(
+                        np.mean(np.abs(shear_stresses[s_length:-n_length]))))
+
+                elif self.particletemplate.particle.file_shape_name == "curl1" and i == 6:
+                    normal_stress_ave.append(
+                        np.mean(normal_stresses[n_length:]))
+                    shear_stress_ave.append(abs(
+                        np.mean(np.abs(shear_stresses[s_length:]))))
+                else:
+                    normal_stress_ave.append(
+                        np.mean(normal_stresses[2*n_length:]))
+                    shear_stress_ave.append(abs(
+                        np.mean(np.abs(shear_stresses[2*s_length:]))))
 
             self.l_normal_stress_ave = np.array(normal_stress_ave)
             self.l_shear_stress_ave = np.array(shear_stress_ave)
@@ -1923,6 +1954,46 @@ class ShearSimulation(object):
         plt.close(1)
 
 
+# class HandlerLineImage(HandlerBase):
+#     def __init__(self, path, space=15, offset=10):
+#         self.space = space
+#         self.offset = offset
+#         self.image_data = plt.imread(path)
+#         super(HandlerLineImage, self).__init__()
+
+#     def create_artists(
+#         self, legend, orig_handle, xdescent, ydescent, width, height, fontsize, trans
+#     ):
+
+#         width = width * 1.4
+#         height = height * 1.4
+
+#         l = matplotlib.lines.Line2D(
+#             [
+#                 xdescent + self.offset,
+#                 xdescent + (width - self.space) / 3.0 + self.offset,
+#             ],
+#             [ydescent + height / 2.0, ydescent + height / 2.0],
+#         )
+#         l.update_from(orig_handle)
+#         l.set_clip_on(False)
+#         l.set_transform(trans)
+
+#         bb = Bbox.from_bounds(
+#             xdescent + (width + self.space) / 3.0 + self.offset,
+#             ydescent,
+#             height * self.image_data.shape[1] / self.image_data.shape[0],
+#             height,
+#         )
+
+#         tbb = TransformedBbox(bb, trans)
+#         image = BboxImage(tbb)
+#         image.set_data(self.image_data)
+
+#         self.update_prop(image, orig_handle, legend)
+#         return [l, image]
+
+
 class SimulationCompare(object):
     simulations: list[ShearSimulation]
 
@@ -1979,47 +2050,109 @@ class SimulationCompare(object):
         plt.semilogy(vfLunmono, pnLunmono, 'k-',
                      linewidth=4, label='Kinetic Theory')
 
-        colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k']
-        markers = ['o', 'x']
+        markers = ["o", "v", "x", "s", "*", "D", "+"]
+        colors = ["#e05252",
+                  "#e1893f", "#D6B11F", "#91b851", "#52a0e0",  "#1F73B8", "#7768ae"]
+        # colors = ['Red', 'Orange', 'Pink',
+        #           'Green', 'LightBlue', 'Blue', "Purple"]
+        labelnames = ["Curl 0", "Curl 1",
+                      "Curl 2", "Curl 3", "Curl 4", "Curl 5", "Curl 6"]
 
+        # curl_images = []
+        # if series_name == "curls":
+        #     curl_images.append(HandlerLineImage(
+        #         "./CURLS/pictures/curl_0_thumbnail.png"))
+        #     curl_images.append(HandlerLineImage(
+        #         "./CURLS/pictures/curl_1_thumbnail.png"))
+        #     curl_images.append(HandlerLineImage(
+        #         "./CURLS/pictures/curl_2_thumbnail.png"))
+        #     curl_images.append(HandlerLineImage(
+        #         "./CURLS/pictures/curl_3_thumbnail.png"))
+        #     curl_images.append(HandlerLineImage(
+        #         "./CURLS/pictures/curl_4_thumbnail.png"))
+        #     curl_images.append(HandlerLineImage(
+        #         "./CURLS/pictures/curl_5_thumbnail.png"))
+
+        plots = []
         for (i, simulation) in enumerate(self.simulations):
             plt.ylabel("$(σ_{yy}) / (ρd_{v}^{2} γ^{2})$")
             plt.xlabel("Solid volume fraction (ν)")
 
-            # if use_fortran:
-            #     plt.plot(simulation.f_volume_fractions, simulation.f_normal_stress_ave / (simulation.particletemplate.particle.density *
-            #                                                                               simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[0], linewidth=1, linestyle='dashed', label="Fortran Normal " + simulation.particletemplate.particle.file_shape_name)
+            if use_fortran:
+                plt.plot(simulation.f_volume_fractions, simulation.f_normal_stress_ave / (simulation.particletemplate.particle.density *
+                                                                                          simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=1, linestyle='dashed', label="Fortran Normal " + simulation.particletemplate.particle.file_shape_name)
 
-            # if use_liggghts:
-            plt.plot(simulation.l_volume_fractions, simulation.l_normal_stress_ave / (simulation.particletemplate.particle.density *
-                                                                                      simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[1], linewidth=1, linestyle='dotted', label="LIGGGHTS Normal " + simulation.particletemplate.particle.file_shape_name)
+            if use_liggghts:
+                plt.plot(simulation.l_volume_fractions, simulation.l_normal_stress_ave / (simulation.particletemplate.particle.density *
+                                                                                          simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=1, linestyle='dotted', label=labelnames[i])
 
             simulation.add_literature_data_to_graph(
                 is_normal=True,  color=colors[i])
         plt.legend()
-        plt.savefig(general_folder_name +
-                    "/normal_stress_vs_vf_{}.pdf".format(series_name))
+        # plt.legend(
+        #     # plots,
+        #     labelnames,
+        #     # handler_map={
+        #     #     plots[0]: curl_images[0],
+        #     #     plots[1]: curl_images[1],
+        #     #     plots[2]: curl_images[2],
+        #     #     plots[3]: curl_images[3],
+        #     #     plots[4]: curl_images[4],
+        #     #     plots[5]: curl_images[5],
+        #     # },
+        #     # frameon=False,
+        #     handlelength=5.0,
+        #     labelspacing=0.0,
+        #     fontsize=14,
+        #     borderpad=0.15,
+        #     loc=2,
+        #     handletextpad=0.2,
+        #     borderaxespad=0.15,
+        # )
 
+        plt.savefig(general_folder_name +
+                    "/normal_stress_vs_vf_{}.pdf".format(series_name), dpi=250)
         plt.close(1)
 
         plt.figure(1)
         plt.semilogy(vfLunmono, snLunmono, 'k-',
                      linewidth=4, label='Kinetic Theory')
+        plots = []
         for (i, simulation) in enumerate(self.simulations):
             plt.ylabel("$(σ_{xy}) / (ρd_{v}^{2} γ^{2})$")
             plt.xlabel("Solid volume fraction (ν)")
 
             if use_fortran:
                 plt.plot(simulation.f_volume_fractions, simulation.f_shear_stress_ave / (simulation.particletemplate.particle.density *
-                                                                                         simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[0], linewidth=1, linestyle='dashed', label="Fortran Shear " + simulation.particletemplate.particle.file_shape_name)
+                                                                                         simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=1, linestyle='dashed', label="Fortran Shear " + simulation.particletemplate.particle.file_shape_name)
             if use_liggghts:
                 plt.plot(simulation.l_volume_fractions, simulation.l_shear_stress_ave / (simulation.particletemplate.particle.density *
-                                                                                         simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[1], linewidth=1, linestyle='dotted', label="LIGGGHTS Shear " + simulation.particletemplate.particle.file_shape_name)
+                                                                                         simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=1, linestyle='dotted', label=labelnames[i])
             simulation.add_literature_data_to_graph(
                 is_normal=False, color=colors[i])
         plt.legend()
+        # plt.legend(
+        #     # plots,
+        #     labelnames,
+        #     # handler_map={
+        #     #     plots[0]: curl_images[0],
+        #     #     plots[1]: curl_images[1],
+        #     #     plots[2]: curl_images[2],
+        #     #     plots[3]: curl_images[3],
+        #     #     plots[4]: curl_images[4],
+        #     #     plots[5]: curl_images[5],
+        #     # },
+        #     # frameon=False,
+        #     handlelength=5.0,
+        #     labelspacing=0.0,
+        #     fontsize=14,
+        #     borderpad=0.15,
+        #     loc=2,
+        #     handletextpad=0.2,
+        #     borderaxespad=0.15,
+        # )
         plt.savefig(general_folder_name + "/shear_stress_vs_vf_{}.pdf".format(
-            series_name))
+            series_name), dpi=250)
         plt.close(1)
 
     def effective_projected_area(self, use_fortran=False, use_liggghts=True, general_folder_name="", series_name="", test_lowest_vf_count=0):
@@ -2044,7 +2177,7 @@ class SimulationCompare(object):
 
                 ave_effective_projected_area = []
                 stress = []
-                for i in range(test_lowest_vf_count, test_lowest_vf_count+1):
+                for i in range(0, 1):
                     ligghts_folder = 'liggghts_'+simulation.root_folder_name
                     vtk_folder = 'vtk_'+simulation.root_folder_name + \
                         '_'
@@ -2053,7 +2186,7 @@ class SimulationCompare(object):
                         simulation.body_position_print_count
 
                     projected_area = []
-                    for j in range(start, simulation.cycle_count[i], simulation.body_position_print_count):
+                    for j in range(start, int(simulation.cycle_count[i]), simulation.body_position_print_count):
                         try:
                             file = open(ligghts_folder + vtk_folder +
                                         str(i) + '/'+str(j)+'.vtk', "r")
@@ -2132,6 +2265,10 @@ class SimulationCompare(object):
                 ave_effective_projected_area.append(
                     np.mean(projected_area)**-2/sphere_projected_area**-2)
 
+                simulation.liggghts_graph_stress_vs_time_specific(i)
+                simulation.load_vf_vs_stress(
+                    use_liggghts=True, use_fortran=False)
+                print(simulation.l_normal_stress_ave)
                 stress_yy = simulation.l_normal_stress_ave[i] / (simulation.particletemplate.particle.density *
                                                                  simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2)
                 stress_xy = simulation.l_shear_stress_ave[i] / (simulation.particletemplate.particle.density *
@@ -2178,3 +2315,32 @@ class SimulationCompare(object):
     # area = oc.getArea(nodes, radiuses)
     # projected_area.append(area)
     # # print(area)
+
+
+# Just for fun color maps stuff
+def test_plot_color_maps():
+    N = 30
+    test_cmaps = ['Dark2', 'rainbow', 'Wistia', 'Set2']
+    # segmented_cmaps = [matplotlib.colors.ListedColormap(
+    #     plt.get_cmap(t)(np.linspace(0, 1, N))) for t in test_cmaps]
+    nrows = len(test_cmaps)
+    gradient = np.linspace(0, 1, 256)
+    gradient = np.vstack((gradient, gradient))
+    cmap_category = 'test'
+    cmap_list = test_cmaps
+    fig, axes = plt.subplots(nrows=nrows)
+    fig.subplots_adjust(top=0.95, bottom=0.01, left=0.2, right=0.99)
+    axes[0].set_title(cmap_category + ' colormaps', fontsize=14)
+
+    for ax, name in zip(axes, cmap_list):
+        ax.imshow(gradient, aspect='auto', cmap=plt.get_cmap(name))
+        pos = list(ax.get_position().bounds)
+        x_text = pos[0] - 0.01
+        y_text = pos[1] + pos[3]/2.
+        fig.text(x_text, y_text, name, va='center', ha='right', fontsize=10)
+
+    # Turn off *all* ticks & spines, not just the ones with colormaps.
+    for ax in axes:
+        ax.set_axis_off()
+
+    plt.show()
