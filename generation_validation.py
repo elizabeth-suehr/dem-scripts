@@ -533,6 +533,10 @@ class ShearSimulation(object):
         self.liggghts_kinetic_shear_stress = []
         self.liggghts_collisional_normal_stress = []
         self.liggghts_collisional_shear_stress = []
+
+        self.liggghts_middle50quartile_last_third_normal = []
+        self.liggghts_middle50quartile_last_third_shear = []
+
         self.liggghts_time = []
         self.fortran_loaded_volume_fraction = []
         self.fortran_kinetic_normal_stress = []
@@ -575,7 +579,7 @@ class ShearSimulation(object):
         self.relaxationtime = 0.1
 
         self.cycle_count = [50e6, 40e6, 40e6, 30e6, 30e6, 30e6, 30e6, 30e6]
-        self.cycle_delay = [25e6, 15e6, 15e6, 5e6, 5e6, 5e6, 5e6, 5e6]
+        self.cycle_delay = [5e6, 5e6, 5e6, 5e6, 5e6, 5e6, 5e6, 5e6]
         self.stress_print_count = [100000, 100000,
                                    50000, 50000, 50000, 30000, 30000, 30000]
         self.body_position_print_count = 10000
@@ -1077,15 +1081,15 @@ class ShearSimulation(object):
             fout.write('fix               leboundary all lebc {0} {1} gtemp {2} ave_reset {3}\n'.format(
                 self.shearstrainrate, "true", 1e-9, self.stress_print_count[i]))
 
-        fout.write('run               {0}\n'.format(
-            int(self.cycle_delay[i])))
+        # fout.write('run               {0}\n'.format(
+        #     int(self.cycle_delay[i])))
 
         if self.body_position_print_count > 0:
             fout.write('dump               dmpvtk all custom/vtk {0} {1} id id_multisphere x y z vx vy vz\n'.format(
                 self.body_position_print_count, ('vtk_'+self.root_folder_name + '_' + str(i) + '/*.vtk')))
 
         fout.write('run               {0}\n'.format(
-            int(self.cycle_count[i] - self.cycle_delay[i])))
+            int(self.cycle_count[i])))
 
         fout.close()
 
@@ -1301,11 +1305,11 @@ class ShearSimulation(object):
                     collisional_normal_stress.append(float(values[5]))
                     collisional_shear_stress.append(float(values[6]))
 
+            time = np.array(time)
             kinetic_normal_stress = np.array(kinetic_normal_stress)
             collisional_normal_stress = np.array(collisional_normal_stress)
             kinetic_shear_stress = np.array(kinetic_shear_stress)
             collisional_shear_stress = np.array(collisional_shear_stress)
-            time = np.array(time)
 
             if len(time) == 0:
                 print("Found no stress in Liggghts File: {} ".format(file_name))
@@ -1316,17 +1320,17 @@ class ShearSimulation(object):
             self.liggghts_kinetic_shear_stress.append(kinetic_shear_stress)
             self.liggghts_collisional_shear_stress.append(
                 collisional_shear_stress)
-            self.liggghts_time.append(time)
+            self.liggghts_time.append(np.array(time))
             self.liggghts_loaded_volume_fraction.append(volume_fraction)
 
             plt.figure(1)
             plt.ylabel("$(σ) / (ρd_{v}^{2} γ^{2})$")
             plt.xlabel("Dimensionless Time ($\.γ$t)")
 
-            n_length = 2 * len(kinetic_normal_stress) // 3 * \
+            n_length = len(kinetic_normal_stress) // 2 * \
                 self.stress_print_count[i] * \
                 self.delta_time * self.relaxationtime * self.shearstrainrate
-            s_length = len(kinetic_shear_stress) // 3
+            s_length = len(kinetic_shear_stress) // 2
             plt.semilogy([n_length, n_length], [(np.max(kinetic_normal_stress + collisional_normal_stress) / 100 / (self.particletemplate.particle.density * self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2)),
                          (np.max(kinetic_normal_stress + collisional_normal_stress) / (self.particletemplate.particle.density * self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2))])
 
@@ -1371,8 +1375,8 @@ class ShearSimulation(object):
             normal_stresses = k_normal_stress + c_normal_stress
             shear_stresses = k_shear_stress + c_shear_stress
 
-            n_length = len(normal_stresses) // 3 * 2
-            s_length = len(shear_stresses) // 3 * 2
+            n_length = len(normal_stresses) // 2
+            s_length = len(shear_stresses) // 2
 
             if n_length < 10:
                 print("Warning: averaging over <10 values")
@@ -1382,6 +1386,25 @@ class ShearSimulation(object):
             shear_stress_ave.append(abs(
                 np.mean(np.abs(shear_stresses[s_length:]))))
 
+            low_normal, high_normal = np.quantile(
+                normal_stresses[n_length:], [0.10, 0.90])
+
+            temp_normal = []
+            for s in normal_stresses[n_length:]:
+                if s > low_normal and s < high_normal:
+                    temp_normal.append(s)
+            self.liggghts_middle50quartile_last_third_normal.append(
+                np.mean(temp_normal))
+
+            low_shear, high_shear = np.quantile(
+                shear_stresses[s_length:], [0.10, 0.90])
+            temp_stress = []
+            for s in shear_stresses[s_length:]:
+                if s > low_shear and s < high_shear:
+                    temp_stress.append(s)
+            self.liggghts_middle50quartile_last_third_shear.append(
+                np.mean(temp_stress))
+
         normal_stress_ave = np.array(normal_stress_ave)
         shear_stress_ave = np.array(shear_stress_ave)
         volume_fractions = np.array(volume_fractions)
@@ -1389,6 +1412,11 @@ class ShearSimulation(object):
         self.l_normal_stress_ave = normal_stress_ave
         self.l_shear_stress_ave = shear_stress_ave
         self.l_volume_fractions = volume_fractions
+
+        self.liggghts_middle50quartile_last_third_normal = np.array(
+            self.liggghts_middle50quartile_last_third_normal)
+        self.liggghts_middle50quartile_last_third_shear = np.array(
+            self.liggghts_middle50quartile_last_third_shear)
 
         vfLunmono, pnLunmono, snLunmono, _coldissipation = self.monodisperse_compute()
 
@@ -1414,6 +1442,32 @@ class ShearSimulation(object):
                                                            self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=1, label="Shear " + self.particletemplate.particle.file_shape_name)
         self.add_literature_data_to_graph(is_normal=False)
         plt.savefig(ligghts_root_name + "/shear_stress_vs_vf_{}.pdf".format(
+            self.particletemplate.particle.file_shape_name))
+
+        plt.close(1)
+
+        plt.figure(1)
+        plt.ylabel("$(σ_{yy}) / (ρd_{v}^{2} γ^{2})$")
+        plt.xlabel("Solid volume fraction (ν)")
+        plt.semilogy(vfLunmono, pnLunmono, 'k-',
+                     linewidth=3, label='Kinetic Theory')
+
+        plt.semilogy(volume_fractions, self.liggghts_middle50quartile_last_third_normal / (self.particletemplate.particle.density *
+                                                                                           self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=1, label="Normal " + self.particletemplate.particle.file_shape_name)
+        self.add_literature_data_to_graph(True)
+        plt.savefig(ligghts_root_name +
+                    "/quartile_normal_stress_vs_vf_{}.pdf".format(self.particletemplate.particle.file_shape_name))
+        plt.close(1)
+
+        plt.figure(1)
+        plt.ylabel("$(σ_{xy}) / (ρd_{v}^{2} γ^{2})$")
+        plt.xlabel("Solid volume fraction (ν)")
+        plt.semilogy(vfLunmono, snLunmono, 'k-',
+                     linewidth=4, label='Kinetic Theory')
+        plt.semilogy(volume_fractions, self.liggghts_middle50quartile_last_third_shear / (self.particletemplate.particle.density *
+                                                                                          self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=1, label="Shear " + self.particletemplate.particle.file_shape_name)
+        self.add_literature_data_to_graph(is_normal=False)
+        plt.savefig(ligghts_root_name + "/quartile_shear_stress_vs_vf_{}.pdf".format(
             self.particletemplate.particle.file_shape_name))
 
         plt.close(1)
@@ -1491,10 +1545,10 @@ class ShearSimulation(object):
             plt.ylabel("$(σ) / (ρd_{v}^{2} γ^{2})$")
             plt.xlabel("Dimensionless Time ($\.γ$t)")
 
-            n_length = len(kinetic_normal_stress) // 3 * \
+            n_length = len(kinetic_normal_stress) // 2 * \
                 self.stress_print_count[i] * \
                 self.delta_time * self.relaxationtime * self.shearstrainrate
-            s_length = len(kinetic_shear_stress) // 3
+            s_length = len(kinetic_shear_stress) // 2
 
             plt.semilogy([n_length, n_length], [np.min((kinetic_normal_stress + collisional_normal_stress) / (self.particletemplate.particle.density *
                          self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2)), np.max((kinetic_normal_stress + collisional_normal_stress) / (self.particletemplate.particle.density *
@@ -1542,8 +1596,8 @@ class ShearSimulation(object):
 
             normal_stresses = k_normal_stress + c_normal_stress
             shear_stresses = k_shear_stress + c_shear_stress
-            n_length = len(normal_stresses) // 3
-            s_length = len(shear_stresses) // 3
+            n_length = len(normal_stresses) // 2
+            s_length = len(shear_stresses) // 2
 
             if n_length < 10 or s_length < 10:
                 print("Warning: averaging over <10 values")
@@ -1769,8 +1823,8 @@ class ShearSimulation(object):
 
                 normal_stresses = k_normal_stress + c_normal_stress
                 shear_stresses = k_shear_stress + c_shear_stress
-                n_length = len(normal_stresses) // 3
-                s_length = len(shear_stresses) // 3
+                n_length = len(normal_stresses) // 2
+                s_length = len(shear_stresses) // 2
 
                 if n_length < 10 or s_length < 10:
                     print("Warning: averaging over <10 values")
@@ -1795,6 +1849,9 @@ class ShearSimulation(object):
             normal_stress_ave = []
             shear_stress_ave = []
 
+            self.liggghts_middle50quartile_last_third_normal = []
+            self.liggghts_middle50quartile_last_third_shear = []
+
             pop_count = 0
             for i, (k_normal_stress, c_normal_stress, k_shear_stress, c_shear_stress) in enumerate(zip(self.liggghts_kinetic_normal_stress, self.liggghts_collisional_normal_stress, self.liggghts_kinetic_shear_stress, self.liggghts_collisional_shear_stress)):
 
@@ -1803,8 +1860,10 @@ class ShearSimulation(object):
 
                 normal_stresses = k_normal_stress + c_normal_stress
                 shear_stresses = k_shear_stress + c_shear_stress
-                n_length = len(normal_stresses) // 3
-                s_length = len(shear_stresses) // 3
+                shear_stresses = np.abs(shear_stresses)
+
+                n_length = len(normal_stresses) // 2
+                s_length = len(shear_stresses) // 2
 
                 if n_length < 10 or s_length < 10:
                     print("Warning: averaging over <10 values")
@@ -1813,36 +1872,39 @@ class ShearSimulation(object):
                     continue
 
                 # Temp Fixes for Curl data, ignoring spikes in stress
-                if self.particletemplate.particle.file_shape_name == "curl2" and i == 3:
-                    normal_stress_ave.append(
-                        np.mean(normal_stresses[n_length:-n_length]))
-                    shear_stress_ave.append(abs(
-                        np.mean(np.abs(shear_stresses[s_length:-n_length]))))
-                elif self.particletemplate.particle.file_shape_name == "curl5" and i == 5:
-                    normal_stress_ave.append(
-                        np.mean(normal_stresses[n_length//2:-n_length*2]))
-                    shear_stress_ave.append(abs(
-                        np.mean(np.abs(shear_stresses[s_length//2:-n_length*2]))))
-                elif self.particletemplate.particle.file_shape_name == "curl2" and i == 7:
-                    normal_stress_ave.append(
-                        np.mean(normal_stresses[n_length:]))
-                    shear_stress_ave.append(abs(
-                        np.mean(np.abs(shear_stresses[s_length:-n_length]))))
 
-                elif self.particletemplate.particle.file_shape_name == "curl1" and i == 6:
-                    normal_stress_ave.append(
-                        np.mean(normal_stresses[n_length:]))
-                    shear_stress_ave.append(abs(
-                        np.mean(np.abs(shear_stresses[s_length:]))))
-                else:
-                    normal_stress_ave.append(
-                        np.mean(normal_stresses[2*n_length:]))
-                    shear_stress_ave.append(abs(
-                        np.mean(np.abs(shear_stresses[2*s_length:]))))
+                normal_stress_ave.append(
+                    np.mean(normal_stresses[n_length:]))
+                shear_stress_ave.append(abs(
+                    np.mean(np.abs(shear_stresses[s_length:]))))
+
+                low_normal, high_normal = np.quantile(
+                    normal_stresses[n_length:], [0.10, 0.90])
+
+                temp_normal = []
+                for s in normal_stresses[n_length:]:
+                    if s > low_normal and s < high_normal:
+                        temp_normal.append(s)
+                self.liggghts_middle50quartile_last_third_normal.append(
+                    np.mean(temp_normal))
+
+                low_shear, high_shear = np.quantile(
+                    shear_stresses[s_length:], [0.10, 0.90])
+                temp_stress = []
+                for s in shear_stresses[s_length:]:
+                    if s > low_shear and s < high_shear:
+                        temp_stress.append(s)
+                self.liggghts_middle50quartile_last_third_shear.append(
+                    np.mean(temp_stress))
 
             self.l_normal_stress_ave = np.array(normal_stress_ave)
             self.l_shear_stress_ave = np.array(shear_stress_ave)
             self.l_volume_fractions = np.array(volume_fractions)
+
+            self.liggghts_middle50quartile_last_third_normal = np.array(
+                self.liggghts_middle50quartile_last_third_normal)
+            self.liggghts_middle50quartile_last_third_shear = np.array(
+                self.liggghts_middle50quartile_last_third_shear)
 
     def graph_liggghts_vs_fortran(self, general_folder_name=""):
         if general_folder_name == "":
@@ -1872,8 +1934,8 @@ class ShearSimulation(object):
 
             normal_stresses = k_normal_stress + c_normal_stress
             shear_stresses = k_shear_stress + c_shear_stress
-            n_length = len(normal_stresses) // 3
-            s_length = len(shear_stresses) // 3
+            n_length = len(normal_stresses) // 2
+            s_length = len(shear_stresses) // 2
 
             if n_length < 10 or s_length < 10:
                 print("Warning: averaging over <10 values")
@@ -1901,8 +1963,8 @@ class ShearSimulation(object):
 
             normal_stresses = k_normal_stress + c_normal_stress
             shear_stresses = k_shear_stress + c_shear_stress
-            n_length = len(normal_stresses) // 3
-            s_length = len(shear_stresses) // 3
+            n_length = len(normal_stresses) // 2
+            s_length = len(shear_stresses) // 2
 
             if n_length < 10 or s_length < 10:
                 print("Warning: averaging over <10 values")
@@ -2083,11 +2145,12 @@ class SimulationCompare(object):
                                                                                           simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=1, linestyle='dashed', label="Fortran Normal " + simulation.particletemplate.particle.file_shape_name)
 
             if use_liggghts:
-                plt.plot(simulation.l_volume_fractions, simulation.l_normal_stress_ave / (simulation.particletemplate.particle.density *
-                                                                                          simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=1, linestyle='dotted', label=labelnames[i])
+                plt.plot(simulation.l_volume_fractions, simulation.liggghts_middle50quartile_last_third_normal / (simulation.particletemplate.particle.density *
+                                                                                                                  simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=1, linestyle='dotted', label=labelnames[i])
 
             simulation.add_literature_data_to_graph(
                 is_normal=True,  color=colors[i])
+
         plt.legend()
         # plt.legend(
         #     # plots,
@@ -2126,8 +2189,9 @@ class SimulationCompare(object):
                 plt.plot(simulation.f_volume_fractions, simulation.f_shear_stress_ave / (simulation.particletemplate.particle.density *
                                                                                          simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=1, linestyle='dashed', label="Fortran Shear " + simulation.particletemplate.particle.file_shape_name)
             if use_liggghts:
-                plt.plot(simulation.l_volume_fractions, simulation.l_shear_stress_ave / (simulation.particletemplate.particle.density *
-                                                                                         simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=1, linestyle='dotted', label=labelnames[i])
+                print(simulation.liggghts_middle50quartile_last_third_shear)
+                plt.plot(simulation.l_volume_fractions, simulation.liggghts_middle50quartile_last_third_shear / (simulation.particletemplate.particle.density *
+                                                                                                                 simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=1, linestyle='dotted', label=labelnames[i])
             simulation.add_literature_data_to_graph(
                 is_normal=False, color=colors[i])
         plt.legend()
@@ -2182,29 +2246,33 @@ class SimulationCompare(object):
                     vtk_folder = 'vtk_'+simulation.root_folder_name + \
                         '_'
 
-                    start = int(0.3 * simulation.cycle_count[i]) * \
-                        simulation.body_position_print_count
+                    start = int(
+                        simulation.cycle_delay[i] + simulation.body_position_print_count)
 
                     projected_area = []
                     for j in range(start, int(simulation.cycle_count[i]), simulation.body_position_print_count):
                         try:
-                            file = open(ligghts_folder + vtk_folder +
+                            file = open(ligghts_folder + '/' + vtk_folder +
                                         str(i) + '/'+str(j)+'.vtk', "r")
                         except OSError:
                             # print(OSError)
-                            print("Could not find:" + ligghts_folder +
+                            print("Could not find:" + ligghts_folder + '/' +
                                   vtk_folder + str(i) + '/'+str(j)+'.vtk')
                             continue
 
-                        particles_positions = np.empty(
-                            (simulation.particle_count[i] * len(simulation.particletemplate.particle.r), 3))
-                        multisphere_ids = np.zeros(
-                            (simulation.particle_count[i] * len(simulation.particletemplate.particle.r)))
+                        particles_positions = []
+                        multisphere_ids = []
                         with file:
 
+                            positions_loaded = False
+                            multisphere_ids_loaded = False
                             # how many non-data lines there are at the beginning
-                            for k in range(5):
-                                file.readline()
+                            for line in file.readlines():
+
+                                if len(line.split()) == 9:
+                                    values = line.split()
+                                    particles_positions.append(
+                                        [float(values[0])])
 
                             # Collect positions of all the atoms
                             k = 0
@@ -2220,7 +2288,7 @@ class SimulationCompare(object):
 
                             # Get to multisphere_id data
                             line = file.readline()
-                            while line.split()[0] != 'id_multisphere':
+                            while line:
                                 line = file.readline()
 
                             # Collect multisphere_ids data

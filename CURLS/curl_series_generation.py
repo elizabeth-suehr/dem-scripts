@@ -48,11 +48,11 @@ def curl_series_simulation_specific(i):
     # Generate Simulation
 
     simulation = lebc.ShearSimulation(particle_templete)
-    simulation.scale_domain = 1.2
+    simulation.scale_domain = 1.3
     simulation.auto_setup()
     simulation.cycle_count = 2 * simulation.cycle_count
 
-    simulation.body_position_print_count = 2000
+    simulation.body_position_print_count = 5000
     simulation.relaxationtime = 0.025
 
     simulation.hasdate_in_foldername = False
@@ -135,7 +135,7 @@ def curl_series_projected_area():
 
 # def curl_series_validate_all():
 #     sphere_radius_distance = [8, 7, 6, 5, 4, 3, 2]
-#     specific_runs =
+#     specific_runs = [0, 1, 2, 3, 4, 5, 6]
 
 #     all_simuations = []
 #     for i in specific_runs:
@@ -172,8 +172,7 @@ def curls_series_validate_all():
     # all.print_lowest_volumefraction_stress()
 
 
-# make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
+make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
 # curl_series_validate_liggghts()
 # curls_series_validate_all()
-curl_series_projected_area()
-# lebc.plot_color_maps()
+# curl_series_projected_area()
