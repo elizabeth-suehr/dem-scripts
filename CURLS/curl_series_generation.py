@@ -46,7 +46,6 @@ def curl_series_simulation_specific(i):
     ####################################################################################
 
     # Generate Simulation
-
     simulation = lebc.ShearSimulation(particle_templete)
     simulation.scale_domain = 1.3
     simulation.auto_setup()

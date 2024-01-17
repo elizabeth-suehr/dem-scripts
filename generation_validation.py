@@ -939,9 +939,17 @@ class ShearSimulation(object):
 
         try:
             os.makedirs(root_name)
+
         except OSError:
             # print(OSError)
             print("generate_ligghts_files: root folder already exists")
+
+        try:
+            for i in range(len(self.volume_fractions)):
+                os.makedirs(root_name + "/" +
+                            "cpi_" + self.root_folder_name + "_" + str(i))
+        except OSError:
+            print(OSERROR)
 
         self.generate_ligghts_particle_data_file(root_name)
 
@@ -1074,14 +1082,14 @@ class ShearSimulation(object):
         fout.write('timestep          {0:.4e}\n\n'.format(
             self.delta_time * self.relaxationtime))
 
-        if self.volume_fractions[i] > 0.2:
-            fout.write('fix               leboundary all lebc {0} {1} gtemp {2} ave_reset {3}\n'.format(
-                self.shearstrainrate, "true", 1e-9, self.stress_print_count[i]))
-        else:
-            fout.write('fix               leboundary all lebc {0} {1} gtemp {2} ave_reset {3}\n'.format(
-                self.shearstrainrate, "true", 1e-9, self.stress_print_count[i]))
+        # if self.volume_fractions[i] > 0.2:
+        #     fout.write('fix               leboundary all lebc {0} {1} gtemp {2} ave_reset {3}\n'.format(
+        #         self.shearstrainrate, "true", 1e-9, self.stress_print_count[i]))
+        # else:
+        fout.write('fix               leboundary all lebc {0} {1} gtemp {2} ave_reset {3} body_data cpi_{4}_{5} {6}\n'.format(
+            self.shearstrainrate, "true", 1e-9, self.stress_print_count[i], self.root_folder_name, str(i), self.body_position_print_count))
 
-        # fout.write('run               {0}\n'.format(
+        # fout.write('run              {0}\n'.format(
         #     int(self.cycle_delay[i])))
 
         if self.body_position_print_count > 0:
