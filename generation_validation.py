@@ -949,21 +949,21 @@ class ShearSimulation(object):
                 os.makedirs(root_name + "/" +
                             "cpi_" + self.root_folder_name + "_" + str(i))
         except OSError:
-            print(OSERROR)
+            print("generate_ligghts_files: sub cpi folder already exists")
 
         self.generate_ligghts_particle_data_file(root_name)
 
         for i in range(len(self.volume_fractions)):
-            if self.volume_fractions[i] <= 0.1:
-                self.generate_liggghts_init_file(
-                    root_name, i, [3, 2, 1], random_orientation)
-                self.generate_liggghts_sbatch_file(
-                    root_name, i, [3, 2, 1])
-            else:
-                self.generate_liggghts_init_file(
-                    root_name, i, mpi_settings, random_orientation)
-                self.generate_liggghts_sbatch_file(
-                    root_name, i, mpi_settings)
+            # if self.volume_fractions[i] <= 0.1:
+            #     self.generate_liggghts_init_file(
+            #         root_name, i, [3, 2, 1], random_orientation)
+            #     self.generate_liggghts_sbatch_file(
+            #         root_name, i, [3, 2, 1])
+            # else:
+            self.generate_liggghts_init_file(
+                root_name, i, mpi_settings, random_orientation)
+            self.generate_liggghts_sbatch_file(
+                root_name, i, mpi_settings)
 
         file_low = open(root_name + "/start_low.sh", "w")
         file_low.write("#!/bin/bash\n")
