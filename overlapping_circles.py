@@ -86,7 +86,7 @@ def normalize(α):
     return round(α, 9)
 
 
-def getArea(nodes, radiuses):
+def getArea(nodes, radiuses, graph_test=False):
     # '''
     # Make some circles intersect in one point.
     # '''
@@ -309,13 +309,10 @@ def getArea(nodes, radiuses):
             polygon.append(nodes[n1])
             polygons.append(polygon)
 
-    # axes = plt.axes()
-    # axes.add_patch(plt.Circle((0, 0), radius=xmax, fill=False, color='black'))
-    # for i in range(N):
-    # axes.annotate(str(i), (nodes[i, 0], nodes[i, 1] + 0.1))
-
-    # axes.scatter([p[0]], [p[1]])
-    # axes.annotate('x', (p[0], p[1] + 0.1))
+    axes = plt.axes()
+    if graph_test:
+        for i in range(N):
+            axes.annotate(str(i), (nodes[i, 0], nodes[i, 1] + 0.1))
 
     total_area = 0.0
     for p in patches:
@@ -323,32 +320,34 @@ def getArea(nodes, radiuses):
         if type(p) == int:
             area = π * radiuses[n] ** 2
             # print('Circle', p, 'gives', area, 'area')
-            # axes.add_patch(
-            #     plt.Circle(
-            #         (nodes[p, 0], nodes[p, 1]),
-            #         radius=radiuses[p],
-            #         alpha=0.2,
-            #         color="blue",
-            #     )
-            # )
+            if graph_test:
+                axes.add_patch(
+                    plt.Circle(
+                        (nodes[p, 0], nodes[p, 1]),
+                        radius=radiuses[p],
+                        alpha=0.2,
+                        color="blue",
+                    )
+                )
         else:
             n, φ1, φ2 = p
             if φ2 < φ1:
                 area = (2 * π + φ2 - φ1) * radiuses[n] ** 2 / 2
             else:
                 area = (φ2 - φ1) * radiuses[n] ** 2 / 2
-            # print('Circle', n, "'s part from", φ1, 'to', φ2, 'gives', area, 'area')
-
-            # axes.add_patch(
-            #     Wedge(
-            #         (nodes[n, 0], nodes[n, 1]),
-            #         radiuses[n],
-            #         φ1 * 180 / π,
-            #         φ2 * 180 / π,
-            #         color="green",
-            #         alpha=0.2,
-            #     )
-            # )
+            # print('Circle', n, "'s part from", φ1,
+            #       'to', φ2, 'gives', area, 'area')
+            if graph_test:
+                axes.add_patch(
+                    Wedge(
+                        (nodes[n, 0], nodes[n, 1]),
+                        radiuses[n],
+                        φ1 * 180 / π,
+                        φ2 * 180 / π,
+                        color="green",
+                        alpha=0.2,
+                    )
+                )
 
         total_area += area
 
@@ -359,12 +358,12 @@ def getArea(nodes, radiuses):
         # axes.add_patch(plt.Polygon(np.array(p), alpha=0.2, color="red"))
 
     # print('Total area:', total_area)
-
-    # axes.scatter(nodes[:, 0], nodes[:, 1])
-    # axes.set_aspect("equal", "datalim")
-    # plt.xlim(-xmax, xmax)
-    # plt.ylim(-xmax, xmax)
-    # plt.show()
+    if graph_test:
+        axes.scatter(nodes[:, 0], nodes[:, 1])
+        axes.set_aspect("equal", "datalim")
+        plt.xlim(-xmax, xmax)
+        plt.ylim(-xmax, xmax)
+        plt.show()
 
     return total_area
 

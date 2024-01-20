@@ -14,6 +14,7 @@ from matplotlib.legend_handler import HandlerBase
 from matplotlib.image import BboxImage
 from matplotlib import rc, rcParams
 
+
 ###############################################################################
 # Random math functions
 
@@ -68,9 +69,9 @@ def quaternion_mult(q, r):
 
 
 def point_rotation_by_quaternion(point, quat):
-    r = [0] + point
-    q = [quat.w, quat.x, quat.y, quat.z]
-    q_conj = [quat.w, -1 * quat.x, -1 * quat.y, -1 * quat.z]
+    r = [0, point[0], point[1], point[2]]
+    q = [quat[0], quat[1], quat[2], quat[3]]
+    q_conj = [quat[0], -1 * quat[1], -1 * quat[2], -1 * quat[3]]
     return quaternion_mult(quaternion_mult(q, r), q_conj)[1:]
 
 
@@ -552,6 +553,8 @@ class ShearSimulation(object):
         self.f_normal_stress_ave = []
         self.f_shear_stress_ave = []
         self.f_volume_fractions = []
+
+        self.quant_range = [0.1, 0.9]
 
     def __str__(self):
         return "No finished yet"
@@ -1335,10 +1338,10 @@ class ShearSimulation(object):
             plt.ylabel("$(σ) / (ρd_{v}^{2} γ^{2})$")
             plt.xlabel("Dimensionless Time ($\.γ$t)")
 
-            n_length = len(kinetic_normal_stress) // 2 * \
+            n_length = len(kinetic_normal_stress) // 3 * 2 * \
                 self.stress_print_count[i] * \
                 self.delta_time * self.relaxationtime * self.shearstrainrate
-            s_length = len(kinetic_shear_stress) // 2
+
             plt.semilogy([n_length, n_length], [(np.max(kinetic_normal_stress + collisional_normal_stress) / 100 / (self.particletemplate.particle.density * self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2)),
                          (np.max(kinetic_normal_stress + collisional_normal_stress) / (self.particletemplate.particle.density * self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2))])
 
@@ -1383,8 +1386,8 @@ class ShearSimulation(object):
             normal_stresses = k_normal_stress + c_normal_stress
             shear_stresses = k_shear_stress + c_shear_stress
 
-            n_length = len(normal_stresses) // 2
-            s_length = len(shear_stresses) // 2
+            n_length = len(normal_stresses) // 3 * 2
+            s_length = len(shear_stresses) // 3 * 2
 
             if n_length < 10:
                 print("Warning: averaging over <10 values")
@@ -1395,7 +1398,7 @@ class ShearSimulation(object):
                 np.mean(np.abs(shear_stresses[s_length:]))))
 
             low_normal, high_normal = np.quantile(
-                normal_stresses[n_length:], [0.10, 0.90])
+                normal_stresses[n_length:], self.quant_range)
 
             temp_normal = []
             for s in normal_stresses[n_length:]:
@@ -1405,7 +1408,7 @@ class ShearSimulation(object):
                 np.mean(temp_normal))
 
             low_shear, high_shear = np.quantile(
-                shear_stresses[s_length:], [0.10, 0.90])
+                shear_stresses[s_length:], self.quant_range)
             temp_stress = []
             for s in shear_stresses[s_length:]:
                 if s > low_shear and s < high_shear:
@@ -1604,8 +1607,8 @@ class ShearSimulation(object):
 
             normal_stresses = k_normal_stress + c_normal_stress
             shear_stresses = k_shear_stress + c_shear_stress
-            n_length = len(normal_stresses) // 2
-            s_length = len(shear_stresses) // 2
+            n_length = len(normal_stresses) // 3 * 2
+            s_length = len(shear_stresses) // 3 * 2
 
             if n_length < 10 or s_length < 10:
                 print("Warning: averaging over <10 values")
@@ -1786,9 +1789,11 @@ class ShearSimulation(object):
             if filestr == "rod6":
                 plt.semilogy(rod6_vf, rod6_normal, '*',
                              color=color, label='Guo: rod6')
-            # if filestr == "curl_3":
-            #     plt.semilogy(curl_vf, curl_3_yy, '*',
-            #                  color=color, label='Suehr: curl_3')
+            if filestr == "curl0":
+                plt.semilogy(rod4_vf, rod4_normal, '*',
+                             color=color, label='Suehr: rod4')
+                plt.semilogy(rod6_vf, rod6_normal, '*',
+                             color=color, label='Guo: rod6')
             # if filestr == "curl_5":
             #     plt.semilogy(curl_vf, curl_5_yy, '*',
             #                  color=color, label='Suehr: curl_5')
@@ -1803,6 +1808,12 @@ class ShearSimulation(object):
                 plt.semilogy(rod4_vf, rod4_vis, '*',
                              color=color, label='Guo: rod4')
             if filestr == "rod6":
+                plt.semilogy(rod6_vf, rod6_vis, '*',
+                             color=color, label='Guo: rod6')
+
+            if filestr == "curl0":
+                plt.semilogy(rod4_vf, rod4_vis, '*',
+                             color=color, label='Suehr: rod4')
                 plt.semilogy(rod6_vf, rod6_vis, '*',
                              color=color, label='Guo: rod6')
             # if filestr == "curl_3":
@@ -1831,8 +1842,8 @@ class ShearSimulation(object):
 
                 normal_stresses = k_normal_stress + c_normal_stress
                 shear_stresses = k_shear_stress + c_shear_stress
-                n_length = len(normal_stresses) // 2
-                s_length = len(shear_stresses) // 2
+                n_length = len(normal_stresses) // 3 * 2
+                s_length = len(shear_stresses) // 3 * 2
 
                 if n_length < 10 or s_length < 10:
                     print("Warning: averaging over <10 values")
@@ -1870,8 +1881,8 @@ class ShearSimulation(object):
                 shear_stresses = k_shear_stress + c_shear_stress
                 shear_stresses = np.abs(shear_stresses)
 
-                n_length = len(normal_stresses) // 2
-                s_length = len(shear_stresses) // 2
+                n_length = len(normal_stresses) // 3 * 2
+                s_length = len(shear_stresses) // 3 * 2
 
                 if n_length < 10 or s_length < 10:
                     print("Warning: averaging over <10 values")
@@ -1887,7 +1898,7 @@ class ShearSimulation(object):
                     np.mean(np.abs(shear_stresses[s_length:]))))
 
                 low_normal, high_normal = np.quantile(
-                    normal_stresses[n_length:], [0.10, 0.90])
+                    normal_stresses[n_length:], self.quant_range)
 
                 temp_normal = []
                 for s in normal_stresses[n_length:]:
@@ -1897,7 +1908,7 @@ class ShearSimulation(object):
                     np.mean(temp_normal))
 
                 low_shear, high_shear = np.quantile(
-                    shear_stresses[s_length:], [0.10, 0.90])
+                    shear_stresses[s_length:], self.quant_range)
                 temp_stress = []
                 for s in shear_stresses[s_length:]:
                     if s > low_shear and s < high_shear:
@@ -1942,8 +1953,8 @@ class ShearSimulation(object):
 
             normal_stresses = k_normal_stress + c_normal_stress
             shear_stresses = k_shear_stress + c_shear_stress
-            n_length = len(normal_stresses) // 2
-            s_length = len(shear_stresses) // 2
+            n_length = len(normal_stresses) // 3 * 2
+            s_length = len(shear_stresses) // 3 * 2
 
             if n_length < 10 or s_length < 10:
                 print("Warning: averaging over <10 values")
@@ -1971,8 +1982,8 @@ class ShearSimulation(object):
 
             normal_stresses = k_normal_stress + c_normal_stress
             shear_stresses = k_shear_stress + c_shear_stress
-            n_length = len(normal_stresses) // 2
-            s_length = len(shear_stresses) // 2
+            n_length = len(normal_stresses) // 3 * 2
+            s_length = len(shear_stresses) // 3 * 2
 
             if n_length < 10 or s_length < 10:
                 print("Warning: averaging over <10 values")
@@ -2228,6 +2239,7 @@ class SimulationCompare(object):
         plt.close(1)
 
     def effective_projected_area(self, use_fortran=False, use_liggghts=True, general_folder_name="", series_name="", test_lowest_vf_count=0):
+        import overlapping_circles as oc
         if general_folder_name == "":
             general_folder_name = "effective_projected_area_" + \
                 self.simulations[0].root_folder_name
@@ -2248,107 +2260,83 @@ class SimulationCompare(object):
                 radius = simulation.particletemplate.particle.r[0]
 
                 ave_effective_projected_area = []
-                stress = []
+                stress_yy = []
+                stress_xy = []
                 for i in range(0, 1):
                     ligghts_folder = 'liggghts_'+simulation.root_folder_name
-                    vtk_folder = 'vtk_'+simulation.root_folder_name + \
+                    cpi_folder = 'cpi_'+simulation.root_folder_name + \
                         '_'
 
-                    start = int(
-                        simulation.cycle_delay[i] + simulation.body_position_print_count)
+                    start = int(21046000)
 
                     projected_area = []
-                    for j in range(start, int(simulation.cycle_count[i]), simulation.body_position_print_count):
+                    for j in range(start, int(21051000), simulation.body_position_print_count):
                         try:
-                            file = open(ligghts_folder + '/' + vtk_folder +
-                                        str(i) + '/'+str(j)+'.vtk', "r")
+                            cpi_file = open(ligghts_folder + '/' + cpi_folder +
+                                            str(i) + '/cpi_' + str(j) + '.txt', "r")
                         except OSError:
                             # print(OSError)
                             print("Could not find:" + ligghts_folder + '/' +
-                                  vtk_folder + str(i) + '/'+str(j)+'.vtk')
+                                  cpi_folder + str(i) + '/cpi_' + str(j) + '.txt')
                             continue
 
-                        particles_positions = []
-                        multisphere_ids = []
-                        with file:
+                        # get particle rotations
+                        particles_quats = np.empty(
+                            (simulation.particle_count[i], 4))
+                        with cpi_file:
+                            for j in range(simulation.particle_count[i]):
+                                line = cpi_file.readline()
+                                values = line.split()
+                                particles_quats[j][0] = values[5]
+                                particles_quats[j][1] = values[6]
+                                particles_quats[j][2] = values[7]
+                                particles_quats[j][3] = values[8]
 
-                            positions_loaded = False
-                            multisphere_ids_loaded = False
-                            # how many non-data lines there are at the beginning
-                            for line in file.readlines():
-
-                                if len(line.split()) == 9:
-                                    values = line.split()
-                                    particles_positions.append(
-                                        [float(values[0])])
-
-                            # Collect positions of all the atoms
-                            k = 0
-                            while k < simulation.particle_count[i] * len(simulation.particletemplate.particle.r):
-                                stringvalues = file.readline().split()
-                                particles_positions[k][0] = float(
-                                    stringvalues[0])
-                                particles_positions[k][1] = float(
-                                    stringvalues[1])
-                                particles_positions[k][2] = float(
-                                    stringvalues[2])
-                                k += 1
-
-                            # Get to multisphere_id data
-                            line = file.readline()
-                            while line:
-                                line = file.readline()
-
-                            # Collect multisphere_ids data
-                            k = 0
-                            while k < simulation.particle_count[i] * len(simulation.particletemplate.particle.r):
-                                stringvalues = line.split()
-                                for (i, s) in enumerate(stringvalues):
-                                    multisphere_ids[k + i] = int(s)
-                                line = file.readline()
-                                k += len(stringvalues)
-
+                        # initalize particles
                         particles = np.empty(
                             (simulation.particle_count[i], len(simulation.particletemplate.particle.r), 3))
-                        fill_count = np.zeros(
-                            (simulation.particle_count[i], len(simulation.particletemplate.particle.r)))
+                        for k in range(simulation.particle_count[i]):
+                            for (j, (x, y, z)) in enumerate(zip(simulation.particletemplate.particle.x, simulation.particletemplate.particle.y, simulation.particletemplate.particle.z)):
+                                particles[k][j][0] = x
+                                particles[k][j][1] = y
+                                particles[k][j][2] = z
 
-                        for j in range(simulation.particle_count[i] * len(simulation.particletemplate.particle.r)):
-                            m_id = multisphere_ids[j]
-                            fill_count[m_id-1] += 1
-                            particles[m_id-1][fill_count[m_id-1]
-                                              ][0] = particles_positions[j][0]
-                            particles[m_id-1][fill_count[m_id-1]
-                                              ][1] = particles_positions[j][1]
-                            particles[m_id-1][fill_count[m_id-1]
-                                              ][2] = particles_positions[j][2]
+                        # Rotate each particle
+                        for k in range(simulation.particle_count[i]):
+                            for j in range(len(simulation.particletemplate.particle.r)):
+                                particles[k][j] = point_rotation_by_quaternion(
+                                    particles[k][j], particles_quats[k])
+
+                        # Get Average Projected area
                         for j in range(simulation.particle_count[i]):
                             nodes = []
                             radii = []
                             for k in range(len(simulation.particletemplate.particle.r)):
                                 nodes.append(
-                                    [particles[j][k][2], particles[j][3]])
+                                    [particles[j][k][1], particles[j][k][2]])
                                 radii.append(radius)
 
                             nodes = np.array(nodes)
-                            radii = np.array(radius)
+                            radii = np.array(radii)
 
-                            area = oc.getArea(nodes, radius)
+                            print(radii)
+
+                            area = oc.getArea(nodes, radii, graph_test=True)
                             projected_area.append(area)
 
-                equiv_radius = simulation.particletemplate.particle.equvi_diameter / 2.0
-                sphere_projected_area = 4./3. * math.pi * equiv_radius**3
-                ave_effective_projected_area.append(
-                    np.mean(projected_area)**-2/sphere_projected_area**-2)
+                    equiv_radius = simulation.particletemplate.particle.equvi_diameter / 2.0
+                    sphere_projected_area = 4./3. * math.pi * equiv_radius**3
+                    ave_effective_projected_area.append(
+                        np.mean(projected_area)**-2/sphere_projected_area**-2)
 
-                simulation.liggghts_graph_stress_vs_time_specific(i)
-                simulation.load_vf_vs_stress(
-                    use_liggghts=True, use_fortran=False)
-                print(simulation.l_normal_stress_ave)
-                stress_yy = simulation.l_normal_stress_ave[i] / (simulation.particletemplate.particle.density *
-                                                                 simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2)
-                stress_xy = simulation.l_shear_stress_ave[i] / (simulation.particletemplate.particle.density *
-                                                                simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2)
+                    simulation.liggghts_graph_stress_vs_time_specific(i)
+                    simulation.load_vf_vs_stress(
+                        use_liggghts=True, use_fortran=False)
+                    print(simulation.l_normal_stress_ave)
+                    stress_yy.append(simulation.l_normal_stress_ave[i] / (simulation.particletemplate.particle.density *
+                                                                          simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2))
+                    stress_xy.append(simulation.l_shear_stress_ave[i] / (simulation.particletemplate.particle.density *
+                                                                         simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2))
 
             plt.figure(1)
             plt.ylabel("$(σ_{yy}) / (ρd_{v}^{2} γ^{2})$")
