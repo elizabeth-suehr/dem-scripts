@@ -171,7 +171,7 @@ def curls_series_validate_all():
     # all.print_lowest_volumefraction_stress()
 
 
-make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
+# make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
 # curl_series_validate_liggghts()
 # curls_series_validate_all()
-# curl_series_projected_area()
+curl_series_projected_area()

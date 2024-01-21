@@ -1,3 +1,4 @@
+import itertools
 import math
 import random
 import numpy as np
@@ -2255,22 +2256,33 @@ class SimulationCompare(object):
             print("General folder name for effective_projected_area already exists")
 
         if use_liggghts:
-            for simulation in self.simulations:
-                # Assumes only one size radii per simulation
-                radius = simulation.particletemplate.particle.r[0]
+            ave_effective_projected_area = []
+            stress_yy = []
+            stress_xy = []
 
-                ave_effective_projected_area = []
-                stress_yy = []
-                stress_xy = []
-                for i in range(0, 1):
+            plt.figure(1)
+            plt.figure(2)
+
+            start_stop = [[41046000, 45051000], [
+                31046000, 35051000], [31046000, 35051000]]
+            colors = itertools.cycle(["#e05252", "#e1893f", "#D6B11F",
+                                      "#91b851", "#52a0e0",  "#1F73B8", "#7768ae"])
+
+            markers = ["o", "v", "x", "s", "*", "D", "+"]
+            for i in range(0, 2):
+                # Assumes only one size radii per simulation
+                ave_effective_projected_area.append([])
+                stress_yy.append([])
+                stress_xy.append([])
+                for simulation in self.simulations:
+                    radius = simulation.particletemplate.particle.r[0]
+                    print("started {0}".format(simulation.volume_fractions[i]))
                     ligghts_folder = 'liggghts_'+simulation.root_folder_name
                     cpi_folder = 'cpi_'+simulation.root_folder_name + \
                         '_'
 
-                    start = int(21046000)
-
                     projected_area = []
-                    for j in range(start, int(21051000), simulation.body_position_print_count):
+                    for j in range(start_stop[i][0], start_stop[i][1], simulation.body_position_print_count):
                         try:
                             cpi_file = open(ligghts_folder + '/' + cpi_folder +
                                             str(i) + '/cpi_' + str(j) + '.txt', "r")
@@ -2319,45 +2331,44 @@ class SimulationCompare(object):
                             nodes = np.array(nodes)
                             radii = np.array(radii)
 
-                            print(radii)
-
-                            area = oc.getArea(nodes, radii, graph_test=True)
+                            area = oc.getArea(nodes, radii, graph_test=False)
                             projected_area.append(area)
 
                     equiv_radius = simulation.particletemplate.particle.equvi_diameter / 2.0
                     sphere_projected_area = 4./3. * math.pi * equiv_radius**3
-                    ave_effective_projected_area.append(
+                    ave_effective_projected_area[i].append(
                         np.mean(projected_area)**-2/sphere_projected_area**-2)
 
                     simulation.liggghts_graph_stress_vs_time_specific(i)
                     simulation.load_vf_vs_stress(
                         use_liggghts=True, use_fortran=False)
-                    print(simulation.l_normal_stress_ave)
-                    stress_yy.append(simulation.l_normal_stress_ave[i] / (simulation.particletemplate.particle.density *
-                                                                          simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2))
-                    stress_xy.append(simulation.l_shear_stress_ave[i] / (simulation.particletemplate.particle.density *
-                                                                         simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2))
+                    stress_yy[i].append(simulation.l_normal_stress_ave[i] / (simulation.particletemplate.particle.density *
+                                                                             simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2))
+                    stress_xy[i].append(simulation.l_shear_stress_ave[i] / (simulation.particletemplate.particle.density *
+                                                                            simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2))
 
-            plt.figure(1)
+                color = next(colors)
+                plt.figure(1)
+                plt.scatter(ave_effective_projected_area[i], stress_yy[i], marker=markers[i], linewidth=1,
+                            label="Normal Effective Projected Area", color=color, )
+                plt.figure(2)
+                plt.scatter(ave_effective_projected_area[i], stress_xy[i], marker=markers[i], linewidth=1,
+                            label="Shear Effective Projected Area", color=color)
+
             plt.ylabel("$(σ_{yy}) / (ρd_{v}^{2} γ^{2})$")
             plt.xlabel("Effective Projected Area")
-            plt.plot(ave_effective_projected_area, stress_yy, 'rs', linewidth=1,
-                     label="Normal Effective Projected Area")
-
             plt.legend()
             plt.savefig(general_folder_name +
                         "/eff_proj_area_yy_{}.pdf".format(series_name))
             plt.close(1)
 
-            plt.figure(1)
             plt.ylabel("$(σ_{xy}) / (ρd_{v}^{2} γ^{2})$")
             plt.xlabel("Effective Projected Area")
-            plt.plot(ave_effective_projected_area, stress_xy, 'rs', linewidth=1,
-                     label="Shear Effective Projected Area")
+
             plt.legend()
             plt.savefig(general_folder_name + "/eff_proj_area_xy_{}.pdf".format(
                 series_name))
-            plt.close(1)
+            plt.close(2)
 
             # quat = random_quaternion()
 
