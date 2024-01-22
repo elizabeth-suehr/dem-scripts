@@ -548,14 +548,17 @@ class ShearSimulation(object):
         self.fortran_time = []
 
         self.l_normal_stress_ave = []
+        self.l_normal_stress_vs_time = []
         self.l_shear_stress_ave = []
+        self.l_shear_stress_vs_time = []
         self.l_volume_fractions = []
 
         self.f_normal_stress_ave = []
         self.f_shear_stress_ave = []
         self.f_volume_fractions = []
+        self.stress_vs_time_cutoff_range = []
 
-        self.quant_range = [0.1, 0.9]
+        self.quant_range = [0.20, 0.80]
 
     def __str__(self):
         return "No finished yet"
@@ -586,6 +589,8 @@ class ShearSimulation(object):
         self.cycle_delay = [5e6, 5e6, 5e6, 5e6, 5e6, 5e6, 5e6, 5e6]
         self.stress_print_count = [100000, 100000,
                                    50000, 50000, 50000, 30000, 30000, 30000]
+        self.stress_vs_time_cutoff_range = [
+            0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.3, 0.3]
         self.body_position_print_count = 10000
         self.save_count = 1000000
 
@@ -1339,15 +1344,18 @@ class ShearSimulation(object):
             plt.ylabel("$(σ) / (ρd_{v}^{2} γ^{2})$")
             plt.xlabel("Dimensionless Time ($\.γ$t)")
 
-            n_length = len(kinetic_normal_stress) // 3 * 2 * \
+            n_length = int(len(kinetic_normal_stress) * self.stress_vs_time_cutoff_range[i]) * \
                 self.stress_print_count[i] * \
                 self.delta_time * self.relaxationtime * self.shearstrainrate
 
             plt.semilogy([n_length, n_length], [(np.max(kinetic_normal_stress + collisional_normal_stress) / 100 / (self.particletemplate.particle.density * self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2)),
                          (np.max(kinetic_normal_stress + collisional_normal_stress) / (self.particletemplate.particle.density * self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2))])
-
+            self.l_normal_stress_vs_time.append((kinetic_normal_stress + collisional_normal_stress) / (self.particletemplate.particle.density *
+                                                                                                       self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2))
             plt.semilogy(time * self.shearstrainrate, (kinetic_normal_stress + collisional_normal_stress) / (self.particletemplate.particle.density *
                          self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), label="Normal " + self.particletemplate.particle.file_shape_name + " vf " + str(volume_fraction))
+            self.l_shear_stress_vs_time.append(np.abs(kinetic_shear_stress + collisional_shear_stress) / (self.particletemplate.particle.density *
+                                                                                                          self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2))
             plt.semilogy(time * self.shearstrainrate, np.abs(kinetic_shear_stress + collisional_shear_stress) / (self.particletemplate.particle.density *
                          self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), label="Shear " + self.particletemplate.particle.file_shape_name + " vf " + str(volume_fraction))
 
@@ -1382,13 +1390,15 @@ class ShearSimulation(object):
         normal_stress_ave = []
         shear_stress_ave = []
 
-        for k_normal_stress, c_normal_stress, k_shear_stress, c_shear_stress in zip(self.liggghts_kinetic_normal_stress, self.liggghts_collisional_normal_stress, self.liggghts_kinetic_shear_stress, self.liggghts_collisional_shear_stress):
+        for (i, (k_normal_stress, c_normal_stress, k_shear_stress, c_shear_stress)) in enumerate(zip(self.liggghts_kinetic_normal_stress, self.liggghts_collisional_normal_stress, self.liggghts_kinetic_shear_stress, self.liggghts_collisional_shear_stress)):
 
             normal_stresses = k_normal_stress + c_normal_stress
             shear_stresses = k_shear_stress + c_shear_stress
 
-            n_length = len(normal_stresses) // 3 * 2
-            s_length = len(shear_stresses) // 3 * 2
+            n_length = int(len(normal_stresses) *
+                           self.stress_vs_time_cutoff_range[i])
+            s_length = int(len(shear_stresses) *
+                           self.stress_vs_time_cutoff_range[i])
 
             if n_length < 10:
                 print("Warning: averaging over <10 values")
@@ -1556,11 +1566,10 @@ class ShearSimulation(object):
             plt.figure(1)
             plt.ylabel("$(σ) / (ρd_{v}^{2} γ^{2})$")
             plt.xlabel("Dimensionless Time ($\.γ$t)")
-
-            n_length = len(kinetic_normal_stress) // 2 * \
+            n_length = int(len(kinetic_normal_stress) *
+                           self.stress_vs_time_cutoff_range[i]) * \
                 self.stress_print_count[i] * \
                 self.delta_time * self.relaxationtime * self.shearstrainrate
-            s_length = len(kinetic_shear_stress) // 2
 
             plt.semilogy([n_length, n_length], [np.min((kinetic_normal_stress + collisional_normal_stress) / (self.particletemplate.particle.density *
                          self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2)), np.max((kinetic_normal_stress + collisional_normal_stress) / (self.particletemplate.particle.density *
@@ -1603,13 +1612,14 @@ class ShearSimulation(object):
         normal_stress_ave = []
         shear_stress_ave = []
 
-        pop_count = 0
         for i, (k_normal_stress, c_normal_stress, k_shear_stress, c_shear_stress) in enumerate(zip(self.fortran_kinetic_normal_stress, self.fortran_collisional_normal_stress, self.fortran_kinetic_shear_stress, self.fortran_collisional_shear_stress)):
 
             normal_stresses = k_normal_stress + c_normal_stress
             shear_stresses = k_shear_stress + c_shear_stress
-            n_length = len(normal_stresses) // 3 * 2
-            s_length = len(shear_stresses) // 3 * 2
+            n_length = int(len(normal_stresses) *
+                           self.stress_vs_time_cutoff_range[i])
+            s_length = int(len(shear_stresses) *
+                           self.stress_vs_time_cutoff_range[i])
 
             if n_length < 10 or s_length < 10:
                 print("Warning: averaging over <10 values")
@@ -1790,11 +1800,11 @@ class ShearSimulation(object):
             if filestr == "rod6":
                 plt.semilogy(rod6_vf, rod6_normal, '*',
                              color=color, label='Guo: rod6')
-            if filestr == "curl0":
-                plt.semilogy(rod4_vf, rod4_normal, '*',
-                             color=color, label='Suehr: rod4')
-                plt.semilogy(rod6_vf, rod6_normal, '*',
-                             color=color, label='Guo: rod6')
+            # if filestr == "curl0":
+            #     plt.semilogy(rod4_vf, rod4_normal, '*',
+            #                  color=color, label='Suehr: rod4')
+            #     plt.semilogy(rod6_vf, rod6_normal, '*',
+            #                  color=color, label='Guo: rod6')
             # if filestr == "curl_5":
             #     plt.semilogy(curl_vf, curl_5_yy, '*',
             #                  color=color, label='Suehr: curl_5')
@@ -1812,11 +1822,11 @@ class ShearSimulation(object):
                 plt.semilogy(rod6_vf, rod6_vis, '*',
                              color=color, label='Guo: rod6')
 
-            if filestr == "curl0":
-                plt.semilogy(rod4_vf, rod4_vis, '*',
-                             color=color, label='Suehr: rod4')
-                plt.semilogy(rod6_vf, rod6_vis, '*',
-                             color=color, label='Guo: rod6')
+            # if filestr == "curl0":
+            #     plt.semilogy(rod4_vf, rod4_vis, '*',
+            #                  color=color, label='Suehr: rod4')
+            #     plt.semilogy(rod6_vf, rod6_vis, '*',
+            #                  color=color, label='Guo: rod6')
             # if filestr == "curl_3":
             #     plt.semilogy(curl_vf, curl_3_xy, '*',
             #                  color=color, label='Suehr: curl_3')
@@ -1843,8 +1853,10 @@ class ShearSimulation(object):
 
                 normal_stresses = k_normal_stress + c_normal_stress
                 shear_stresses = k_shear_stress + c_shear_stress
-                n_length = len(normal_stresses) // 3 * 2
-                s_length = len(shear_stresses) // 3 * 2
+                n_length = int(len(normal_stresses) *
+                               self.stress_vs_time_cutoff_range[i])
+                s_length = int(len(shear_stresses) *
+                               self.stress_vs_time_cutoff_range[i])
 
                 if n_length < 10 or s_length < 10:
                     print("Warning: averaging over <10 values")
@@ -1882,8 +1894,10 @@ class ShearSimulation(object):
                 shear_stresses = k_shear_stress + c_shear_stress
                 shear_stresses = np.abs(shear_stresses)
 
-                n_length = len(normal_stresses) // 3 * 2
-                s_length = len(shear_stresses) // 3 * 2
+                n_length = int(len(normal_stresses) *
+                               self.stress_vs_time_cutoff_range[i])
+                s_length = int(len(shear_stresses) *
+                               self.stress_vs_time_cutoff_range[i])
 
                 if n_length < 10 or s_length < 10:
                     print("Warning: averaging over <10 values")
@@ -1954,8 +1968,10 @@ class ShearSimulation(object):
 
             normal_stresses = k_normal_stress + c_normal_stress
             shear_stresses = k_shear_stress + c_shear_stress
-            n_length = len(normal_stresses) // 3 * 2
-            s_length = len(shear_stresses) // 3 * 2
+            n_length = int(len(normal_stresses) *
+                           self.stress_vs_time_cutoff_range[i])
+            s_length = int(len(shear_stresses) *
+                           self.stress_vs_time_cutoff_range[i])
 
             if n_length < 10 or s_length < 10:
                 print("Warning: averaging over <10 values")
@@ -1983,8 +1999,10 @@ class ShearSimulation(object):
 
             normal_stresses = k_normal_stress + c_normal_stress
             shear_stresses = k_shear_stress + c_shear_stress
-            n_length = len(normal_stresses) // 3 * 2
-            s_length = len(shear_stresses) // 3 * 2
+            n_length = int(len(normal_stresses) *
+                           self.stress_vs_time_cutoff_range[i])
+            s_length = int(len(shear_stresses) *
+                           self.stress_vs_time_cutoff_range[i])
 
             if n_length < 10 or s_length < 10:
                 print("Warning: averaging over <10 values")
@@ -2130,7 +2148,7 @@ class SimulationCompare(object):
         plt.figure(1)
 
         plt.semilogy(vfLunmono, pnLunmono, 'k-',
-                     linewidth=4, label='Kinetic Theory')
+                     linewidth=2, label='Kinetic Theory')
 
         markers = ["o", "v", "x", "s", "*", "D", "+"]
         colors = ["#e05252",
@@ -2162,11 +2180,11 @@ class SimulationCompare(object):
 
             if use_fortran:
                 plt.plot(simulation.f_volume_fractions, simulation.f_normal_stress_ave / (simulation.particletemplate.particle.density *
-                                                                                          simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=1, linestyle='dashed', label="Fortran Normal " + simulation.particletemplate.particle.file_shape_name)
+                                                                                          simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=0.8, linestyle='dashed', label="Fortran Normal " + simulation.particletemplate.particle.file_shape_name)
 
             if use_liggghts:
                 plt.plot(simulation.l_volume_fractions, simulation.liggghts_middle50quartile_last_third_normal / (simulation.particletemplate.particle.density *
-                                                                                                                  simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=1, linestyle='dotted', label=labelnames[i])
+                                                                                                                  simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=0.8, linestyle='dotted', label=labelnames[i])
 
             simulation.add_literature_data_to_graph(
                 is_normal=True,  color=colors[i])
@@ -2199,7 +2217,7 @@ class SimulationCompare(object):
 
         plt.figure(1)
         plt.semilogy(vfLunmono, snLunmono, 'k-',
-                     linewidth=4, label='Kinetic Theory')
+                     linewidth=2, label='Kinetic Theory')
         plots = []
         for (i, simulation) in enumerate(self.simulations):
             plt.ylabel("$(σ_{xy}) / (ρd_{v}^{2} γ^{2})$")
@@ -2207,11 +2225,11 @@ class SimulationCompare(object):
 
             if use_fortran:
                 plt.plot(simulation.f_volume_fractions, simulation.f_shear_stress_ave / (simulation.particletemplate.particle.density *
-                                                                                         simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=1, linestyle='dashed', label="Fortran Shear " + simulation.particletemplate.particle.file_shape_name)
+                                                                                         simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=0.8, linestyle='dashed', label="Fortran Shear " + simulation.particletemplate.particle.file_shape_name)
             if use_liggghts:
                 print(simulation.liggghts_middle50quartile_last_third_shear)
                 plt.plot(simulation.l_volume_fractions, simulation.liggghts_middle50quartile_last_third_shear / (simulation.particletemplate.particle.density *
-                                                                                                                 simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=1, linestyle='dotted', label=labelnames[i])
+                                                                                                                 simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=0.8, linestyle='dotted', label=labelnames[i])
             simulation.add_literature_data_to_graph(
                 is_normal=False, color=colors[i])
         plt.legend()
@@ -2263,13 +2281,13 @@ class SimulationCompare(object):
             plt.figure(1)
             plt.figure(2)
 
-            start_stop = [[41046000, 45051000], [
-                31046000, 35051000], [31046000, 35051000]]
+            start_stop = [[43046000, 45051000], [
+                33046000, 35051000], [34001000, 35051000]]
             colors = itertools.cycle(["#e05252", "#e1893f", "#D6B11F",
                                       "#91b851", "#52a0e0",  "#1F73B8", "#7768ae"])
 
             markers = ["o", "v", "x", "s", "*", "D", "+"]
-            for i in range(0, 2):
+            for i in range(0, 3):
                 # Assumes only one size radii per simulation
                 ave_effective_projected_area.append([])
                 stress_yy.append([])
@@ -2282,14 +2300,19 @@ class SimulationCompare(object):
                         '_'
 
                     projected_area = []
+                    delta = 0
                     for j in range(start_stop[i][0], start_stop[i][1], simulation.body_position_print_count):
+
+                        found_files = False
                         try:
                             cpi_file = open(ligghts_folder + '/' + cpi_folder +
-                                            str(i) + '/cpi_' + str(j) + '.txt', "r")
+                                            str(i) + '/cpi_' + str(delta + j) + '.txt', "r")
+                            found_files = True
                         except OSError:
                             # print(OSError)
                             print("Could not find:" + ligghts_folder + '/' +
-                                  cpi_folder + str(i) + '/cpi_' + str(j) + '.txt')
+                                  cpi_folder + str(i) + '/cpi_' + str(delta + j) + '.txt')
+                            delta -= 1000
                             continue
 
                         # get particle rotations
@@ -2350,10 +2373,10 @@ class SimulationCompare(object):
                 color = next(colors)
                 plt.figure(1)
                 plt.scatter(ave_effective_projected_area[i], stress_yy[i], marker=markers[i], linewidth=1,
-                            label="Normal Effective Projected Area", color=color, )
+                            label="Normal Effective Projected Area VF={0}".format(simulation.volume_fractions[i]), color=color, )
                 plt.figure(2)
                 plt.scatter(ave_effective_projected_area[i], stress_xy[i], marker=markers[i], linewidth=1,
-                            label="Shear Effective Projected Area", color=color)
+                            label="Shear Effective Projected Area VF={0}".format(simulation.volume_fractions[i]), color=color)
 
             plt.ylabel("$(σ_{yy}) / (ρd_{v}^{2} γ^{2})$")
             plt.xlabel("Effective Projected Area")
@@ -2370,7 +2393,94 @@ class SimulationCompare(object):
                 series_name))
             plt.close(2)
 
-            # quat = random_quaternion()
+    def high_vf_box_whisker_compare(self, use_fortran=True, use_liggghts=True, general_folder_name="", series_name="", high_volume_fractions=[7]):
+        if general_folder_name == "":
+            general_folder_name = "high_volume_box_" + \
+                self.simulations[0].root_folder_name
+        if series_name == "":
+            series_name = "high_volume_box_" + \
+                self.simulations[0].particletemplate.particle.file_shape_name
+
+        try:
+            os.makedirs(general_folder_name)
+        except OSError:
+            # print(OSError)
+            print("General folder name for graph already exists")
+
+        # Now that all the data is loaded, we can graph the stress vs volume fraction in on nice
+        plt.figure(1)
+        fig, ax = plt.subplots()
+
+        markers = ["o", "v", "x", "s", "*", "D", "+"]
+        colors = ["#e05252",
+                  "#e1893f", "#D6B11F", "#91b851", "#52a0e0",  "#1F73B8", "#7768ae"]
+        colors = ['Red', 'Orange', 'Pink',
+                  'Green', 'LightBlue', 'Blue', "Purple"]
+        labelnames = ["Curl 0", "Curl 1",
+                      "Curl 2", "Curl 3", "Curl 4", "Curl 5", "Curl 6"]
+
+        plots = []
+        data = []
+        for (i, simulation) in enumerate(self.simulations):
+            plt.ylabel("$(σ_{yy}) / (ρd_{v}^{2} γ^{2})$")
+            plt.xlabel("Curl #")
+            if use_liggghts:
+
+                for j in range(min(high_volume_fractions), max(high_volume_fractions)+1):
+                    n_length = int(len(simulation.l_normal_stress_vs_time[j]) *
+                                   simulation.stress_vs_time_cutoff_range[j])
+                    data.append(
+                        simulation.l_normal_stress_vs_time[j][n_length:])
+
+        my_dict = dict(zip(labelnames, data))
+        ax.boxplot(my_dict.values())
+        ax.set_xticklabels(my_dict.keys())
+        ax.set_yscale('log')
+
+        plt.savefig(general_folder_name +
+                    "/normal_box_{}.pdf".format(series_name), dpi=250)
+        plt.close(1)
+
+        plt.figure(1)
+        fig, ax = plt.subplots()
+        data = []
+        for (i, simulation) in enumerate(self.simulations):
+            plt.ylabel("$(σ_{xy}) / (ρd_{v}^{2} γ^{2})$")
+
+            if use_liggghts:
+                for j in range(min(high_volume_fractions), max(high_volume_fractions)+1):
+                    s_length = int(len(simulation.l_shear_stress_vs_time[j]) *
+                                   simulation.stress_vs_time_cutoff_range[j])
+                    data.append(
+                        simulation.l_shear_stress_vs_time[j][s_length:])
+
+        my_dict = dict(zip(labelnames, data))
+        ax.boxplot(my_dict.values())
+        ax.set_xticklabels(my_dict.keys())
+        ax.set_yscale('log')
+
+        plt.savefig(general_folder_name + "/shear_box_{}.pdf".format(
+            series_name), dpi=250)
+        plt.close(1)
+
+    # def log_normal_compare(self,use_fortran=False, use_liggghts=True, general_folder_name="", series_name="",volume_fraction=[7]):
+    #     if general_folder_name == "":
+    #         general_folder_name = "lognorm_compare_" + \
+    #             self.simulations[0].root_folder_name
+    #     if series_name == "":
+    #         series_name = "lognorm_compare_" + \
+    #             self.simulations[0].particletemplate.particle.file_shape_name
+
+    #     try:
+    #         os.makedirs(general_folder_name)
+    #         import overlapping_circles as oc
+    #     except OSError:
+    #         # print(OSError)
+    #         print("General folder name for lognorm_compare already exists")
+    #     if use_liggghts:
+
+    #         for i in range(volume_fraction[0], np.max(volume_fraction)+1):
+    #             for simulation in self.simulations:
 
     # for j in range(len(new3d_points)):
     #     new3d_points[j] = point_rotation_by_quaternion(new3d_points[j], quat)
