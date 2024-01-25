@@ -319,7 +319,7 @@ class Particle(object):
             return True
 
     def create_multisphere(self, filename, density=2500.0, repeat_count=200_000_000, is_centered=False, needs_rotated=False, is_point_mass=False, delta_cutoff=1e-8):
-
+        print("Creating multisphere " + filename)
         self.density = density
         self.file_data_name = filename + "_data"
         self.file_shape_name = filename

@@ -171,7 +171,7 @@ def curl_series_validate_liggghts():
     sphere_radius_distance = [8, 7, 6, 5, 4, 3, 2]
     specific_runs = [0, 1, 2, 3, 4, 5, 6]
     for i in specific_runs:
-        simulation = curl_series_simulation_specific(i)
+        simulation = curl_series_simulation_specific(str(i))
         simulation.liggghts_graph_stress_vs_volume_fraction(
             already_loaded=False)  # if true it won't try and reload the data
         # if false it will reload data and plot all stress vs time graphs
@@ -183,7 +183,7 @@ def curl_series_projected_area():
 
     all_simuations = []
     for i in specific_runs:
-        simulation = curl_series_simulation_specific(i)
+        simulation = curl_series_simulation_specific(str(i))
         simulation.load_vf_vs_stress(use_fortran=False, use_liggghts=True)
         all_simuations.append(simulation)
 
@@ -228,7 +228,7 @@ def curls_series_validate_all():
     all_simuations = []
     for i in my_list:
         aspect_ratio = i
-        simulation = curl_series_simulation_specific(aspect_ratio)
+        simulation = curl_series_simulation_specific(str(aspect_ratio))
 
         simulation.load_vf_vs_stress(use_fortran=False, use_liggghts=True)
 
@@ -243,12 +243,11 @@ def curls_series_validate_all():
 
 
 ########################
-make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
-
+# nmake_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
 ########################
 # Call these together
-# curl_series_validate_liggghts()
-# curls_series_validate_all()
+curl_series_validate_liggghts()
+curls_series_validate_all()
 
 ########################
 # curl_series_projected_area()
