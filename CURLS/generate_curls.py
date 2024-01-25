@@ -4,7 +4,7 @@ import numpy as np
 
 
 # quadractic method
-def quadratic_method(radius_distance, radius):
+def quadratic_method(radius_distance, radius, names):
     NUM_SPHERES = 5  # must be odd
     if NUM_SPHERES % 2 == 0:
         print("NUM_SPHERES must be odd")
@@ -18,7 +18,7 @@ def quadratic_method(radius_distance, radius):
 
     count = 0
 
-    for sep in end_seperation_length:
+    for (sep, name) in zip(end_seperation_length, names):
 
         if (NUM_SPHERES - 1) * 2.0 * radius == sep:
             print("Straight rod particle generated as curl_" +
@@ -100,7 +100,7 @@ def quadratic_method(radius_distance, radius):
 
         # plt.show()
 
-        filename = "curl" + str(count)
+        filename = "curl" + name
 
         file = open(filename, "w")
 

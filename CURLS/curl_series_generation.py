@@ -19,7 +19,7 @@ lebc = load_lebc()
 
 def curl_series_simulation_specific(i):
     curl_number = i
-    filename = "curl" + str(curl_number)
+    filename = "curl" + curl_number
 
     particle = lebc.Particle()
     # particle.create_multisphere(filename, density, monticarlo_count, is_particle_already_centered?)
@@ -117,12 +117,13 @@ def make_and_gen(remake_base_particle_shapes, make_vtk_files):
 
     if remake_base_particle_shapes:
         # This saves curl particle shapes called curl1, curl2, curl3, etc..
-        curls.quadratic_method(sphere_radius_distance, sphere_radius)
+        curls.quadratic_method(sphere_radius_distance,
+                               sphere_radius, ["0", "1", "2", "3", "4", "5", "6"])
 
     for i in range(0, len(sphere_radius_distance)):
         ####################################################################################
         # Load Particle data into lebc.Particle
-        simulation = curl_series_simulation_specific(i)
+        simulation = curl_series_simulation_specific(str(i))
         # generate_fortran_files("extra_string_if_needed", include date in filename, is sbatch files high priority?)
         # simulation.generate_fortran_files()
 
@@ -134,6 +135,27 @@ def make_and_gen(remake_base_particle_shapes, make_vtk_files):
     simulation_rod.generate_liggghts_files([4, 4, 2], random_orientation=False)
     if make_vtk_files:
         simulation_rod.particletemplate.particle.legacy_vtk_printout()
+
+    # Include half curl particle
+    if remake_base_particle_shapes:
+        # This saves curl particle shapes called curl1, curl2, curl3, etc..
+        curls.quadratic_method(
+            [7.75, 7.5, 7.25], sphere_radius, ["0.25", "0.5", "0.75"])
+     ####################################################################################
+    # Load Particle data into lebc.Particle
+    simulation7 = curl_series_simulation_specific("0.25")
+    simulation8 = curl_series_simulation_specific("0.5")
+    simulation9 = curl_series_simulation_specific("0.75")
+    # generate_fortran_files("extra_string_if_needed", include date in filename, is sbatch files high priority?)
+    # simulation.generate_fortran_files()
+
+    simulation7.generate_liggghts_files([4, 4, 2], random_orientation=False)
+    simulation8.generate_liggghts_files([4, 4, 2], random_orientation=False)
+    simulation9.generate_liggghts_files([4, 4, 2], random_orientation=False)
+    if make_vtk_files:
+        simulation7.particletemplate.particle.legacy_vtk_printout()
+        simulation8.particletemplate.particle.legacy_vtk_printout()
+        simulation9.particletemplate.particle.legacy_vtk_printout()
 
 
 def curl_series_liggghts_init_to_fortran():
