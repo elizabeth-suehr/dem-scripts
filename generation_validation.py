@@ -585,7 +585,7 @@ class ShearSimulation(object):
 
         self.relaxationtime = 0.1
 
-        self.cycle_count = [50e6, 40e6, 40e6, 30e6, 30e6, 30e6, 30e6, 30e6]
+        self.cycle_count = [60e6, 40e6, 40e6, 30e6, 30e6, 30e6, 30e6, 30e6]
         self.cycle_delay = [5e6, 5e6, 5e6, 5e6, 5e6, 5e6, 5e6, 5e6]
         self.stress_print_count = [100000, 100000,
                                    50000, 50000, 50000, 30000, 30000, 30000]
@@ -2093,7 +2093,6 @@ class ShearSimulation(object):
 #         self.update_prop(image, orig_handle, legend)
 #         return [l, image]
 
-
 class SimulationCompare(object):
     simulations: list[ShearSimulation]
 
@@ -2287,7 +2286,7 @@ class SimulationCompare(object):
                                       "#91b851", "#52a0e0",  "#1F73B8", "#7768ae"])
 
             markers = ["o", "v", "x", "s", "*", "D", "+"]
-            for i in range(0, 3):
+            for i in range(0, 2):
                 # Assumes only one size radii per simulation
                 ave_effective_projected_area.append([])
                 stress_yy.append([])
@@ -2374,6 +2373,7 @@ class SimulationCompare(object):
                 plt.figure(1)
                 plt.scatter(ave_effective_projected_area[i], stress_yy[i], marker=markers[i], linewidth=1,
                             label="Normal Effective Projected Area VF={0}".format(simulation.volume_fractions[i]), color=color, )
+
                 plt.figure(2)
                 plt.scatter(ave_effective_projected_area[i], stress_xy[i], marker=markers[i], linewidth=1,
                             label="Shear Effective Projected Area VF={0}".format(simulation.volume_fractions[i]), color=color)
@@ -2462,6 +2462,97 @@ class SimulationCompare(object):
         plt.savefig(general_folder_name + "/shear_box_{}.pdf".format(
             series_name), dpi=250)
         plt.close(1)
+
+    # def interlocking_time_historgram(self, use_fortran=False, use_liggghts=True, general_folder_name="", series_name="", test_lowest_vf_count=0):
+    #     import overlapping_circles as oc
+    #     if general_folder_name == "":
+    #         general_folder_name = "Interlocking_Histograms_" + \
+    #             self.simulations[0].root_folder_name
+    #     if series_name == "":
+    #         series_name = "Interlocking_Histograms_" + \
+    #             self.simulations[0].particletemplate.particle.file_shape_name
+
+    #     try:
+    #         os.makedirs(general_folder_name)
+    #         import overlapping_circles as oc
+    #     except OSError:
+    #         # print(OSError)
+    #         print("General folder name for effective_projected_area already exists")
+
+    #     if use_liggghts:
+    #         ave_effective_projected_area = []
+    #         stress_yy = []
+    #         stress_xy = []
+
+    #         plt.figure(1)
+    #         plt.figure(2)
+
+    #         start_stop = [[43046000, 45051000], [
+    #             33046000, 35051000], [34001000, 35051000]]
+    #         colors = itertools.cycle(["#e05252", "#e1893f", "#D6B11F",
+    #                                   "#91b851", "#52a0e0",  "#1F73B8", "#7768ae"])
+
+    #         markers = ["o", "v", "x", "s", "*", "D", "+"]
+
+    #         for simulation in self.simulations:
+    #             for i in range(0, len(simulation.volume_fractions)):
+    #                 # Assumes only one size radii per simulation
+    #                 ave_effective_projected_area.append([])
+    #                 stress_yy.append([])
+    #                 stress_xy.append([])
+
+    #                 radius = simulation.particletemplate.particle.r[0]
+    #                 print("started {0}".format(simulation.volume_fractions[i]))
+    #                 ligghts_folder = 'liggghts_'+simulation.root_folder_name
+    #                 cpi_folder = 'cpi_'+simulation.root_folder_name + \
+    #                     '_'
+
+    #                 try:
+    #                     collisions_file = open(ligghts_folder + '/' + cpi_folder +
+    #                                            str(i) + '/collision.txt', "r")
+    #                 except OSError:
+    #                     # print(OSError)
+    #                     print("Could not find:" + ligghts_folder + '/' +
+    #                           cpi_folder + str(i) + '/collision.txt')
+
+    #                     continue
+
+    #                 current_step = 0
+    #                 with collisions_file:
+    #                     for line in collisions_file:
+    #                         stringvalues = line.split()
+    #                         if stringvalues[0] == "file":
+
+    #                             collision_counts[i][j][k] = count
+    #                             k = int(stringvalues[1])
+    #                             count = 0
+    #                             list_of_particles = []
+    #                         elif float(stringvalues[0]) >= 0 and float(stringvalues[1]) >= 0:
+    #                             if not int(stringvalues[0]) in list_of_particles:
+    #                                 count += 1
+    #                                 list_of_particles.append(int(stringvalues[0]))
+    #                             if not int(stringvalues[1]) in list_of_particles:
+    #                                 count += 1
+    #                                 list_of_particles.append(int(stringvalues[1]))
+
+    #                             value_one = int(stringvalues[0])
+    #                             value_two = int(stringvalues[1])
+
+    #                             if value_one < value_two:
+    #                                 per_particle_collision_count[value_one][value_two] += 1
+    #                             else:
+    #                                 per_particle_collision_count[value_two][value_one] += 1
+
+    #     per_particle_total_time = np.zeros((particle_count[j]))
+    #     per_particle_redudant_count = np.zeros((particle_count[j]))
+
+    #     for k in range(particle_count[j]):
+    #         for l in range(particle_count[j]):
+    #             if per_particle_collision_count[k][l] > 0:
+    #                 per_particle_total_time[k] += per_particle_collision_count[k][l]
+    #                 per_particle_total_time[l] += per_particle_collision_count[k][l]
+    #                 per_particle_redudant_count[k] += 1
+    #                 per_particle_redudant_count[l] += 1
 
     # def log_normal_compare(self,use_fortran=False, use_liggghts=True, general_folder_name="", series_name="",volume_fraction=[7]):
     #     if general_folder_name == "":

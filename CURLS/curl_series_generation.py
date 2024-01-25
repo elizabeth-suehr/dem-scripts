@@ -30,6 +30,49 @@ def curl_series_simulation_specific(i):
     print(particle)  # for debugging purposes
 
     ####################################################################################
+    # Generate Particle Template
+
+    youngsmod = 8.7e9
+    poissonratio = 0.30
+    frictioncoefficient = 0.0
+    restitutioncoefficient = 0.95
+    cohesion = 0.0
+    yieldstress = 1.9306e30
+
+    particle_templete = lebc.ParticleTemplate(
+        particle, youngsmod, poissonratio, frictioncoefficient, restitutioncoefficient, cohesion, yieldstress)
+
+    ####################################################################################
+    # Generate Simulation
+    simulation = lebc.ShearSimulation(particle_templete)
+    simulation.scale_domain = 1.2
+    simulation.auto_setup()
+    simulation.cycle_count = 2 * simulation.cycle_count
+
+    simulation.body_position_print_count = 5000
+    simulation.relaxationtime = 0.025
+
+    simulation.hasdate_in_foldername = False
+    simulation.is_sbatch_high_priority = True
+    simulation.sbatch_time = "2-00:00:00"
+    simulation.use_liggghts_for_filling = True
+
+    return simulation
+
+
+def rod_series_simulation_specific(i):
+    aspect_ratio = i
+    filename = "rod" + str(aspect_ratio)
+
+    particle = lebc.Particle()
+    # particle.create_multisphere(filename, density, monticarlo_count, is_particle_already_centered?)
+    particle.load_or_create_multisphere(
+        filename, 2500.0, 600_000_000, is_centered=False, needs_rotated=False, is_point_mass=True, delta_cutoff=1e-8)
+    # particle.create_multisphere(filename, 2500.0, 600_000_000, True) #this line does same as above but forces the data to be rewritten
+
+    print(particle)  # for debugging purposes
+
+    ####################################################################################
 
     # Generate Particle Template
 
@@ -46,17 +89,16 @@ def curl_series_simulation_specific(i):
     ####################################################################################
 
     # Generate Simulation
-    simulation = lebc.ShearSimulation(particle_templete)
-    simulation.scale_domain = 1.2
-    simulation.auto_setup()
-    simulation.cycle_count = 2 * simulation.cycle_count
 
-    simulation.body_position_print_count = 5000
-    simulation.relaxationtime = 0.025
+    simulation = lebc.ShearSimulation(particle_templete)
+    simulation.auto_setup()
+
+    if aspect_ratio >= 3:
+        simulation.relaxationtime = 0.05
 
     simulation.hasdate_in_foldername = False
-    simulation.is_sbatch_high_priority = False
-    simulation.sbatch_time = "2-00:00:00"
+    simulation.is_sbatch_high_priority = True
+    simulation.sbatch_time = "20-00:00:00"
     simulation.use_liggghts_for_filling = True
 
     return simulation
@@ -87,6 +129,11 @@ def make_and_gen(remake_base_particle_shapes, make_vtk_files):
         simulation.generate_liggghts_files([4, 4, 2], random_orientation=False)
         if make_vtk_files:
             simulation.particletemplate.particle.legacy_vtk_printout()
+    # Include Rod 3
+    simulation_rod = rod_series_simulation_specific(3)
+    simulation_rod.generate_liggghts_files([4, 4, 2], random_orientation=False)
+    if make_vtk_files:
+        simulation_rod.particletemplate.particle.legacy_vtk_printout()
 
 
 def curl_series_liggghts_init_to_fortran():
@@ -173,7 +220,13 @@ def curls_series_validate_all():
     # all.print_lowest_volumefraction_stress()
 
 
-# make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
-curl_series_validate_liggghts()
-curls_series_validate_all()
+########################
+make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
+
+########################
+# Call these together
+# curl_series_validate_liggghts()
+# curls_series_validate_all()
+
+########################
 # curl_series_projected_area()
