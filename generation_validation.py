@@ -516,7 +516,7 @@ class ShearSimulation(object):
         self.particle_count = []
         self.particletemplate = particletemplate
 
-        self.scale_domain = 1.05
+        self.scale_domain = 1.0
         self.domain = np.zeros((2, 3), dtype=np.float64)
         self.domain_volume = 0.0
         self.shearstrainrate = 0.0
@@ -558,7 +558,7 @@ class ShearSimulation(object):
         self.f_volume_fractions = []
         self.stress_vs_time_cutoff_range = []
 
-        self.quant_range = [0.20, 0.80]
+        self.quant_range = [0.0, 0.9]
 
     def __str__(self):
         return "No finished yet"
@@ -1366,7 +1366,7 @@ class ShearSimulation(object):
             if additional_save_path != "":
                 plt.savefig(additional_save_path +
                             "/l_stress_vs_time_{}_{}.pdf".format(self.particletemplate.particle.file_shape_name, i))
-            plt.close(1)
+            plt.clf()
 
     def ligghts_graph_stress_vs_time(self, additional_save_path=""):
         for i in range(len(self.volume_fractions)):
@@ -1453,7 +1453,7 @@ class ShearSimulation(object):
         self.add_literature_data_to_graph(True)
         plt.savefig(ligghts_root_name +
                     "/normal_stress_vs_vf_{}.pdf".format(self.particletemplate.particle.file_shape_name))
-        plt.close(1)
+        plt.clf()
 
         plt.figure(1)
         plt.ylabel("$(σ_{xy}) / (ρd_{v}^{2} γ^{2})$")
@@ -1466,7 +1466,7 @@ class ShearSimulation(object):
         plt.savefig(ligghts_root_name + "/shear_stress_vs_vf_{}.pdf".format(
             self.particletemplate.particle.file_shape_name))
 
-        plt.close(1)
+        plt.clf()
 
         plt.figure(1)
         plt.ylabel("$(σ_{yy}) / (ρd_{v}^{2} γ^{2})$")
@@ -1479,7 +1479,7 @@ class ShearSimulation(object):
         self.add_literature_data_to_graph(True)
         plt.savefig(ligghts_root_name +
                     "/quartile_normal_stress_vs_vf_{}.pdf".format(self.particletemplate.particle.file_shape_name))
-        plt.close(1)
+        plt.clf()
 
         plt.figure(1)
         plt.ylabel("$(σ_{xy}) / (ρd_{v}^{2} γ^{2})$")
@@ -1492,7 +1492,7 @@ class ShearSimulation(object):
         plt.savefig(ligghts_root_name + "/quartile_shear_stress_vs_vf_{}.pdf".format(
             self.particletemplate.particle.file_shape_name))
 
-        plt.close(1)
+        plt.clf()
 
     def clear_fortran_data(self):
         self.fortran_collisional_normal_stress.clear()
@@ -1587,7 +1587,7 @@ class ShearSimulation(object):
             if additional_save_path != "":
                 plt.savefig(additional_save_path +
                             "/f_stress_vs_time_{}_{}.pdf".format(self.particletemplate.particle.file_shape_name, volume_fraction))
-            plt.close(1)
+            plt.clf()
 
     def fortran_graph_stress_vs_time(self, additional_save_path=""):
         for i in range(len(self.volume_fractions)):
@@ -1650,7 +1650,7 @@ class ShearSimulation(object):
         plt.savefig(fortran_root_name +
                     "/normal_stress_vs_vf_{}.pdf".format(self.particletemplate.particle.file_shape_name))
 
-        plt.close(1)
+        plt.clf()
 
         plt.figure(1)
         plt.ylabel("$(σ_{xy}) / (ρd_{v}^{2} γ^{2})$")
@@ -1663,7 +1663,7 @@ class ShearSimulation(object):
         plt.savefig(fortran_root_name + "/shear_stress_vs_vf_{}.pdf".format(
             self.particletemplate.particle.file_shape_name))
 
-        plt.close(1)
+        plt.clf()
 
     def add_literature_data_to_graph(self, is_normal,  color='blue'):
         curl_vf = [0.025, 0.05, 0.1, 0.2, 0.3, 0.4, 0.45]
@@ -2035,7 +2035,7 @@ class ShearSimulation(object):
         plt.savefig(general_folder_name +
                     "/normal_stress_vs_vf_{}.pdf".format(self.particletemplate.particle.file_shape_name))
 
-        plt.close(1)
+        plt.clf()
 
         plt.figure(1)
         plt.ylabel("$(σ_{xy}) / (ρd_{v}^{2} γ^{2})$")
@@ -2051,7 +2051,7 @@ class ShearSimulation(object):
         plt.savefig(general_folder_name + "/shear_stress_vs_vf_{}.pdf".format(
             self.particletemplate.particle.file_shape_name))
 
-        plt.close(1)
+        plt.clf()
 
 
 # class HandlerLineImage(HandlerBase):
@@ -2212,7 +2212,7 @@ class SimulationCompare(object):
 
         plt.savefig(general_folder_name +
                     "/normal_stress_vs_vf_{}.pdf".format(series_name), dpi=250)
-        plt.close(1)
+        plt.clf()
 
         plt.figure(1)
         plt.semilogy(vfLunmono, snLunmono, 'k-',
@@ -2254,7 +2254,7 @@ class SimulationCompare(object):
         # )
         plt.savefig(general_folder_name + "/shear_stress_vs_vf_{}.pdf".format(
             series_name), dpi=250)
-        plt.close(1)
+        plt.clf()
 
     def effective_projected_area(self, use_fortran=False, use_liggghts=True, general_folder_name="", series_name="", test_lowest_vf_count=0):
         import overlapping_circles as oc
@@ -2282,8 +2282,8 @@ class SimulationCompare(object):
 
             start_stop = [[43046000, 45051000], [
                 33046000, 35051000], [34001000, 35051000]]
-            colors = itertools.cycle(["#e05252", "#e1893f", "#D6B11F",
-                                      "#91b851", "#52a0e0",  "#1F73B8", "#7768ae"])
+            colors = ["#e05252", "#e1893f", "#D6B11F",
+                      "#91b851", "#52a0e0",  "#1F73B8", "#7768ae"]
 
             markers = ["o", "v", "x", "s", "*", "D", "+"]
             for i in range(0, 2):
@@ -2372,28 +2372,42 @@ class SimulationCompare(object):
                 color = next(colors)
                 plt.figure(1)
                 plt.scatter(ave_effective_projected_area[i], stress_yy[i], marker=markers[i], linewidth=1,
-                            label="Normal Effective Projected Area VF={0}".format(simulation.volume_fractions[i]), color=color, )
+                            label="Normal Effective Projected Area VF={0}".format(simulation.volume_fractions[i]), color=colors, )
+
+                m, b = np.polyfit(
+                    ave_effective_projected_area[i], stress_yy[i], 1)
+                regression = np.array(ave_effective_projected_area[i]) * m + b
+                plt.plot(ave_effective_projected_area[i], regression,
+                         color="brown", linestyle="dashed")
 
                 plt.figure(2)
                 plt.scatter(ave_effective_projected_area[i], stress_xy[i], marker=markers[i], linewidth=1,
-                            label="Shear Effective Projected Area VF={0}".format(simulation.volume_fractions[i]), color=color)
+                            label="Shear Effective Projected Area VF={0}".format(simulation.volume_fractions[i]), color=colors)
 
+                m, b = np.polyfit(
+                    ave_effective_projected_area[i], stress_xy[i], 1)
+                regression = np.array(ave_effective_projected_area[i]) * m + b
+                plt.plot(ave_effective_projected_area[i], regression,
+                         color="black", linestyle="dashed")
+
+            plt.figure(1)
             plt.ylabel("$(σ_{yy}) / (ρd_{v}^{2} γ^{2})$")
             plt.xlabel("Effective Projected Area")
             plt.legend()
             plt.savefig(general_folder_name +
                         "/eff_proj_area_yy_{}.pdf".format(series_name))
-            plt.close(1)
-
+            plt.close()
+            plt.figure(2)
             plt.ylabel("$(σ_{xy}) / (ρd_{v}^{2} γ^{2})$")
             plt.xlabel("Effective Projected Area")
 
             plt.legend()
             plt.savefig(general_folder_name + "/eff_proj_area_xy_{}.pdf".format(
                 series_name))
-            plt.close(2)
+            plt.clf()
 
-    def high_vf_box_whisker_compare(self, use_fortran=True, use_liggghts=True, general_folder_name="", series_name="", high_volume_fractions=[7]):
+    def high_vf_box_whisker_compare(self, use_fortran=True, use_liggghts=True, general_folder_name="", series_name="", high_volume_fractions=[7], labelnames=["Curl 0", "Curl 1",
+                                                                                                                                                              "Curl 2", "Curl 3", "Curl 4", "Curl 5", "Curl 6"]):
         if general_folder_name == "":
             general_folder_name = "high_volume_box_" + \
                 self.simulations[0].root_folder_name
@@ -2416,8 +2430,6 @@ class SimulationCompare(object):
                   "#e1893f", "#D6B11F", "#91b851", "#52a0e0",  "#1F73B8", "#7768ae"]
         colors = ['Red', 'Orange', 'Pink',
                   'Green', 'LightBlue', 'Blue', "Purple"]
-        labelnames = ["Curl 0", "Curl 1",
-                      "Curl 2", "Curl 3", "Curl 4", "Curl 5", "Curl 6"]
 
         plots = []
         data = []
@@ -2434,12 +2446,12 @@ class SimulationCompare(object):
 
         my_dict = dict(zip(labelnames, data))
         ax.boxplot(my_dict.values())
-        ax.set_xticklabels(my_dict.keys())
+        ax.set_xticklabels(my_dict.keys(), fontsize='small')
         ax.set_yscale('log')
 
         plt.savefig(general_folder_name +
                     "/normal_box_{}.pdf".format(series_name), dpi=250)
-        plt.close(1)
+        plt.clf()
 
         plt.figure(1)
         fig, ax = plt.subplots()
@@ -2461,7 +2473,7 @@ class SimulationCompare(object):
 
         plt.savefig(general_folder_name + "/shear_box_{}.pdf".format(
             series_name), dpi=250)
-        plt.close(1)
+        plt.clf()
 
     # def interlocking_time_historgram(self, use_fortran=False, use_liggghts=True, general_folder_name="", series_name="", test_lowest_vf_count=0):
     #     import overlapping_circles as oc

@@ -250,4 +250,4 @@ curl_series_validate_liggghts()
 curls_series_validate_all()
 
 ########################
-# curl_series_projected_area()
+curl_series_projected_area()
