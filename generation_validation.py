@@ -521,13 +521,13 @@ class ShearSimulation(object):
         self.domain_volume = 0.0
         self.shearstrainrate = 0.0
         self.gravity = np.zeros(3, dtype=np.float64)
-        self.relaxationtime = 0
+        self.relaxationtime = []
         self.delta_time = 0.0
         self.cycle_count = []
         self.cycle_delay = []
         self.stress_print_count = []
         self.save_count = 0
-        self.body_position_print_count = 0
+        self.body_position_print_count = []
 
         # Validation Variables
         self.liggghts_loaded_volume_fraction = []
@@ -583,16 +583,15 @@ class ShearSimulation(object):
         self.shearstrainrate = 100.0
         self.volume_fractions = [0.025, 0.05, 0.1, 0.2, 0.3, 0.4, 0.45, 0.5]
 
-        self.relaxationtime = 0.1
+        self.relaxationtime = [0.025,0.025,0.025,0.025,0.0125,0.0125,0.0125,0.0125]
 
         self.cycle_count = [60e6, 40e6, 40e6, 30e6, 30e6, 30e6, 30e6, 30e6]
         self.cycle_delay = [5e6, 5e6, 5e6, 5e6, 5e6, 5e6, 5e6, 5e6]
         self.stress_print_count = [100000, 100000,
-                                   50000, 50000, 50000, 30000, 30000, 30000]
-        self.stress_vs_time_cutoff_range = [
-            0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.3, 0.3]
-        self.body_position_print_count = 10000
-        self.save_count = 1000000
+                                   50000, 50000, 100000, 60000, 60000, 60000]
+        self.stress_vs_time_cutoff_range = [0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.3, 0.3]
+        self.body_position_print_count = [5000,5000,5000,5000,10000,10000,10000,10000]
+        self.save_count = 5000
 
         # Uses equvialent volume diameter to size the domain
         e_v_d = self.particletemplate.particle.equvi_diameter * self.scale_domain
@@ -723,7 +722,7 @@ class ShearSimulation(object):
 
         file.write("leb {:.3f}\n".format(self.shearstrainrate))
 
-        file.write("frac {:.3f}\n".format(self.relaxationtime))
+        file.write("frac {:.3f}\n".format(self.relaxationtime[i]))
         file.write("\n")
 
         self.write_fortran_pridata(path)
@@ -749,16 +748,16 @@ class ShearSimulation(object):
         file.write("pri cpi\nvtp bal\n")
         file.write("\n")
 
-        if stress_count > self.body_position_print_count:
+        if stress_count > self.body_position_print_count[i]:
             count = 0
             while count < cyc_count:
                 file.write("ast on\n")
                 inter_count = 0
                 while inter_count < stress_count:
                     file.write("cyc {}\n".format(
-                        self.body_position_print_count))
-                    count += self.body_position_print_count
-                    inter_count += self.body_position_print_count
+                        self.body_position_print_count[i]))
+                    count += self.body_position_print_count[i]
+                    inter_count += self.body_position_print_count[i]
                     file.write("pri cpi\n")
                     # file.write("pri cpi read\nvtp bal\n")
                 file.write("pri ast\nast off\n")
@@ -767,11 +766,11 @@ class ShearSimulation(object):
                     file.write("save SHEAR" +
                                str(int(count // self.save_count)) + "\n")
                 file.write("\n")
-        elif stress_count < self.body_position_print_count:
+        elif stress_count < self.body_position_print_count[i]:
             count = 0
             while count < cyc_count:
                 inter_count = 0
-                while inter_count < self.body_position_print_count:
+                while inter_count < self.body_position_print_count[i]:
                     file.write("ast on\n")
                     file.write("cyc {}\n".format(stress_count))
                     count += stress_count
@@ -870,8 +869,8 @@ class ShearSimulation(object):
             self.gravity[0], -20.0, self.gravity[2]))
 
         file.write("leb {:.3f}\n".format(0.0))
-
-        file.write("frac {:.3f}\n".format(self.relaxationtime))
+        ##TODO 
+        ##file.write("frac {:.3f}\n".format(self.relaxationtime[i]))
 
         file.write("DWALL FPL(0.0 0.0 0.0 {:.6f} 0.0 0.0 {:.6f} 0.0 {:.6f} 0.0 0.0 {:.6f}) vel(0.0 0.0 0.0) mat(1)\n".format(
             self.domain[1][0], self.domain[1][1], self.domain[1][2], self.domain[1][2]))
@@ -1029,7 +1028,7 @@ class ShearSimulation(object):
         fout.write('create_box        {} domain\n\n'.format(1))
 
         fout.write('neighbor          {0:.3e} bin\n'.format(
-            self.particletemplate.particle.max_radius * 1.05))
+            self.particletemplate.particle.max_radius * 1.1))
 
         # # fout.write('neigh_modify      every 1 delay 0 check no one {0} page {1}\n\n'.format(npar_max,51*npar_max))
         # fout.write(
@@ -1081,7 +1080,7 @@ class ShearSimulation(object):
 
         fout.write('# Run briefly to eliminate potential overlaps\n')
         fout.write('fix               limcheck all slowinit xmax {0:.2e} reset {1} threshold {2:.2e} start_dt {3:.3e} end_dt {4:.3e}\n'.format(
-            1e-7, int(1000), 1e-7, 1e-15, self.delta_time * self.relaxationtime))  # should make this available for user to set
+            1e-7, int(1000), 1e-7, 1e-15, self.delta_time * self.relaxationtime[i] * 2.0))  # should make this available for user to set
         fout.write('run               {0}\n\n'.format(int(200_000)))
 
         fout.write('unfix             limcheck\n')
@@ -1089,21 +1088,21 @@ class ShearSimulation(object):
             1, self.particletemplate.restitutioncoefficient))
 
         fout.write('timestep          {0:.4e}\n\n'.format(
-            self.delta_time * self.relaxationtime))
+            self.delta_time * self.relaxationtime[i]))
 
         # if self.volume_fractions[i] > 0.2:
         #     fout.write('fix               leboundary all lebc {0} {1} gtemp {2} ave_reset {3}\n'.format(
         #         self.shearstrainrate, "true", 1e-9, self.stress_print_count[i]))
         # else:
         fout.write('fix               leboundary all lebc {0} {1} gtemp {2} ave_reset {3} body_data cpi_{4}_{5} {6}\n'.format(
-            self.shearstrainrate, "true", 1e-9, self.stress_print_count[i], self.root_folder_name, str(i), self.body_position_print_count))
+            self.shearstrainrate, "true", 1e-9, self.stress_print_count[i], self.root_folder_name, str(i), self.body_position_print_count[i]))
 
         # fout.write('run              {0}\n'.format(
         #     int(self.cycle_delay[i])))
 
-        if self.body_position_print_count > 0:
+        if self.body_position_print_count[i] > 0:
             fout.write('dump               dmpvtk all custom/vtk {0} {1} id id_multisphere x y z vx vy vz\n'.format(
-                self.body_position_print_count, ('vtk_'+self.root_folder_name + '_' + str(i) + '/*.vtk')))
+                self.body_position_print_count[i], ('vtk_'+self.root_folder_name + '_' + str(i) + '/*.vtk')))
 
         fout.write('run               {0}\n'.format(
             int(self.cycle_count[i])))
@@ -1316,7 +1315,7 @@ class ShearSimulation(object):
                     values = line.split()
                     time_count += self.stress_print_count[i]
                     time.append(time_count * self.delta_time *
-                                self.relaxationtime)
+                                self.relaxationtime[i])
                     kinetic_normal_stress.append(float(values[2]))
                     kinetic_shear_stress.append(float(values[3]))
                     collisional_normal_stress.append(float(values[5]))
@@ -1346,7 +1345,7 @@ class ShearSimulation(object):
 
             n_length = int(len(kinetic_normal_stress) * self.stress_vs_time_cutoff_range[i]) * \
                 self.stress_print_count[i] * \
-                self.delta_time * self.relaxationtime * self.shearstrainrate
+                self.delta_time * self.relaxationtime[i] * self.shearstrainrate
 
             plt.semilogy([n_length, n_length], [(np.max(kinetic_normal_stress + collisional_normal_stress) / 100 / (self.particletemplate.particle.density * self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2)),
                          (np.max(kinetic_normal_stress + collisional_normal_stress) / (self.particletemplate.particle.density * self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2))])
@@ -1533,7 +1532,7 @@ class ShearSimulation(object):
             while line:
                 stringvalues = line.split()
                 time.append(float(stringvalues[0]) * self.delta_time *
-                            self.relaxationtime)
+                            self.relaxationtime[i])
                 kinetic_normal_stress.append(float(stringvalues[3]))
                 kinetic_shear_stress.append(float(stringvalues[4]))
                 collisional_normal_stress.append(float(stringvalues[6]))
@@ -1569,7 +1568,7 @@ class ShearSimulation(object):
             n_length = int(len(kinetic_normal_stress) *
                            self.stress_vs_time_cutoff_range[i]) * \
                 self.stress_print_count[i] * \
-                self.delta_time * self.relaxationtime * self.shearstrainrate
+                self.delta_time * self.relaxationtime[i] * self.shearstrainrate
 
             plt.semilogy([n_length, n_length], [np.min((kinetic_normal_stress + collisional_normal_stress) / (self.particletemplate.particle.density *
                          self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2)), np.max((kinetic_normal_stress + collisional_normal_stress) / (self.particletemplate.particle.density *
@@ -2286,6 +2285,8 @@ class SimulationCompare(object):
                       "#91b851", "#52a0e0",  "#1F73B8", "#7768ae"]
 
             markers = ["o", "v", "x", "s", "*", "D", "+"]
+
+            line_colors = ["brown","black"]
             for i in range(0, 2):
                 # Assumes only one size radii per simulation
                 ave_effective_projected_area.append([])
@@ -2300,7 +2301,7 @@ class SimulationCompare(object):
 
                     projected_area = []
                     delta = 0
-                    for j in range(start_stop[i][0], start_stop[i][1], simulation.body_position_print_count):
+                    for j in range(start_stop[i][0], start_stop[i][1], simulation.body_position_print_count[i]):
 
                         found_files = False
                         try:
@@ -2369,42 +2370,43 @@ class SimulationCompare(object):
                     stress_xy[i].append(simulation.l_shear_stress_ave[i] / (simulation.particletemplate.particle.density *
                                                                             simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2))
 
-                color = next(colors)
-                plt.figure(1)
-                plt.scatter(ave_effective_projected_area[i], stress_yy[i], marker=markers[i], linewidth=1,
-                            label="Normal Effective Projected Area VF={0}".format(simulation.volume_fractions[i]), color=colors, )
 
+            for i in range(0, 2):
+                plt.scatter(ave_effective_projected_area[i], stress_yy[i], marker=markers[i], linewidth=1,
+                            color=colors)
+                
                 m, b = np.polyfit(
                     ave_effective_projected_area[i], stress_yy[i], 1)
                 regression = np.array(ave_effective_projected_area[i]) * m + b
                 plt.plot(ave_effective_projected_area[i], regression,
-                         color="brown", linestyle="dashed")
+                         color=line_colors[i], linestyle="dashed",label="VF = {0}".format(simulation.volume_fractions[i]))
 
-                plt.figure(2)
+            plt.ylabel("$(σ_{yy}) / (ρd_{v}^{2} γ^{2})$")
+            plt.xlabel("$(A_{eff}^{-2})$")
+            plt.legend()
+            plt.savefig(general_folder_name +
+                        "/eff_proj_area_yy_{}.pdf".format(series_name))
+
+
+            plt.clf()
+            for i in range(0, 2):
                 plt.scatter(ave_effective_projected_area[i], stress_xy[i], marker=markers[i], linewidth=1,
-                            label="Shear Effective Projected Area VF={0}".format(simulation.volume_fractions[i]), color=colors)
-
+                            color=colors)
+               
                 m, b = np.polyfit(
                     ave_effective_projected_area[i], stress_xy[i], 1)
                 regression = np.array(ave_effective_projected_area[i]) * m + b
                 plt.plot(ave_effective_projected_area[i], regression,
-                         color="black", linestyle="dashed")
-
-            plt.figure(1)
-            plt.ylabel("$(σ_{yy}) / (ρd_{v}^{2} γ^{2})$")
-            plt.xlabel("Effective Projected Area")
-            plt.legend()
-            plt.savefig(general_folder_name +
-                        "/eff_proj_area_yy_{}.pdf".format(series_name))
-            plt.close()
-            plt.figure(2)
+                         color=line_colors[i], linestyle="dashed", label="VF = {0}".format(simulation.volume_fractions[i]))
+            
+            
             plt.ylabel("$(σ_{xy}) / (ρd_{v}^{2} γ^{2})$")
-            plt.xlabel("Effective Projected Area")
+            plt.xlabel("$(A_{eff}^{-2})$")
 
             plt.legend()
             plt.savefig(general_folder_name + "/eff_proj_area_xy_{}.pdf".format(
                 series_name))
-            plt.clf()
+        
 
     def high_vf_box_whisker_compare(self, use_fortran=True, use_liggghts=True, general_folder_name="", series_name="", high_volume_fractions=[7], labelnames=["Curl 0", "Curl 1",
                                                                                                                                                               "Curl 2", "Curl 3", "Curl 4", "Curl 5", "Curl 6"]):

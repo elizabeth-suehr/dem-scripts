@@ -49,10 +49,7 @@ def curl_series_simulation_specific(i):
     simulation.auto_setup()
     simulation.cycle_count = 2 * simulation.cycle_count
 
-    simulation.body_position_print_count = 5000
-    simulation.relaxationtime = 0.025
-
-    simulation.hasdate_in_foldername = False
+    simulation.hasdate_in_foldername = True
     simulation.is_sbatch_high_priority = True
     simulation.sbatch_time = "2-00:00:00"
     simulation.use_liggghts_for_filling = True
@@ -89,14 +86,11 @@ def rod_series_simulation_specific(i):
     ####################################################################################
 
     # Generate Simulation
-
     simulation = lebc.ShearSimulation(particle_templete)
+    simulation.scale_domain = 1.2
     simulation.auto_setup()
-
-    if aspect_ratio >= 3:
-        simulation.relaxationtime = 0.05
-
-    simulation.hasdate_in_foldername = False
+    simulation.cycle_count = 2 * simulation.cycle_count
+    simulation.hasdate_in_foldername = True
     simulation.is_sbatch_high_priority = True
     simulation.sbatch_time = "20-00:00:00"
     simulation.use_liggghts_for_filling = True
@@ -243,11 +237,11 @@ def curls_series_validate_all():
 
 
 ########################
-# nmake_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
+make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
 ########################
 # Call these together
-curl_series_validate_liggghts()
-curls_series_validate_all()
+#curl_series_validate_liggghts()
+#curls_series_validate_all()
 
 ########################
-curl_series_projected_area()
+#curl_series_projected_area()
