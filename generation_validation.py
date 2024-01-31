@@ -528,6 +528,7 @@ class ShearSimulation(object):
         self.stress_print_count = []
         self.save_count = 0
         self.body_position_print_count = []
+        self.lock_symmetry = []
 
         # Validation Variables
         self.liggghts_loaded_volume_fraction = []
@@ -558,7 +559,8 @@ class ShearSimulation(object):
         self.f_volume_fractions = []
         self.stress_vs_time_cutoff_range = []
 
-        self.quant_range = [0.0, 0.9]
+        self.quant_range = [0.0, 1.0]
+
 
     def __str__(self):
         return "No finished yet"
@@ -591,6 +593,7 @@ class ShearSimulation(object):
                                    50000, 50000, 100000, 60000, 60000, 60000]
         self.stress_vs_time_cutoff_range = [0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.3, 0.3]
         self.body_position_print_count = [5000,5000,5000,5000,10000,10000,10000,10000]
+        self.lock_symmetry = ["false","false","false","false","false","false","false","false"]
         self.save_count = 5000
 
         # Uses equvialent volume diameter to size the domain
@@ -1094,8 +1097,8 @@ class ShearSimulation(object):
         #     fout.write('fix               leboundary all lebc {0} {1} gtemp {2} ave_reset {3}\n'.format(
         #         self.shearstrainrate, "true", 1e-9, self.stress_print_count[i]))
         # else:
-        fout.write('fix               leboundary all lebc {0} {1} gtemp {2} ave_reset {3} body_data cpi_{4}_{5} {6}\n'.format(
-            self.shearstrainrate, "true", 1e-9, self.stress_print_count[i], self.root_folder_name, str(i), self.body_position_print_count[i]))
+        fout.write('fix               leboundary all lebc {0} {1} gtemp {2} ave_reset {3} body_data cpi_{4}_{5} {6} lock_symmetry {7}\n'.format(
+            self.shearstrainrate, "true", 1e-9, self.stress_print_count[i], self.root_folder_name, str(i), self.body_position_print_count[i], self.lock_symmetry[i]))
 
         # fout.write('run              {0}\n'.format(
         #     int(self.cycle_delay[i])))
@@ -1450,6 +1453,7 @@ class ShearSimulation(object):
         plt.semilogy(volume_fractions, normal_stress_ave / (self.particletemplate.particle.density *
                                                             self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=1, label="Normal " + self.particletemplate.particle.file_shape_name)
         self.add_literature_data_to_graph(True)
+        plt.legend()
         plt.savefig(ligghts_root_name +
                     "/normal_stress_vs_vf_{}.pdf".format(self.particletemplate.particle.file_shape_name))
         plt.clf()
@@ -1462,6 +1466,7 @@ class ShearSimulation(object):
         plt.semilogy(volume_fractions, shear_stress_ave / (self.particletemplate.particle.density *
                                                            self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=1, label="Shear " + self.particletemplate.particle.file_shape_name)
         self.add_literature_data_to_graph(is_normal=False)
+        plt.legend()
         plt.savefig(ligghts_root_name + "/shear_stress_vs_vf_{}.pdf".format(
             self.particletemplate.particle.file_shape_name))
 
@@ -1476,6 +1481,7 @@ class ShearSimulation(object):
         plt.semilogy(volume_fractions, self.liggghts_middle50quartile_last_third_normal / (self.particletemplate.particle.density *
                                                                                            self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=1, label="Normal " + self.particletemplate.particle.file_shape_name)
         self.add_literature_data_to_graph(True)
+        plt.legend()
         plt.savefig(ligghts_root_name +
                     "/quartile_normal_stress_vs_vf_{}.pdf".format(self.particletemplate.particle.file_shape_name))
         plt.clf()
@@ -1488,6 +1494,7 @@ class ShearSimulation(object):
         plt.semilogy(volume_fractions, self.liggghts_middle50quartile_last_third_shear / (self.particletemplate.particle.density *
                                                                                           self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=1, label="Shear " + self.particletemplate.particle.file_shape_name)
         self.add_literature_data_to_graph(is_normal=False)
+        plt.legend()
         plt.savefig(ligghts_root_name + "/quartile_shear_stress_vs_vf_{}.pdf".format(
             self.particletemplate.particle.file_shape_name))
 
@@ -1807,9 +1814,15 @@ class ShearSimulation(object):
             # if filestr == "curl_5":
             #     plt.semilogy(curl_vf, curl_5_yy, '*',
             #                  color=color, label='Suehr: curl_5')
-            if filestr == "rod5":
-                plt.semilogy(curl_vf, curl_0_yy, '*', color=color,
-                             label='Suehr: curl_0 or rod5')
+            
+            # if filestr == "rod3":
+            #     plt.semilogy(rod2_vf, rod2_normal, '*',
+            #                  color=color, label='Guo: rod2')
+            #     plt.semilogy(rod4_vf, rod4_normal, 'v',
+            #                  color=color, label='Guo: rod4')
+            # if filestr == "rod5":
+            #     plt.semilogy(curl_vf, curl_0_yy, '*', color=color,
+            #                  label='Suehr: curl_0 or rod5')
         else:
             if filestr == "rod2":
                 plt.semilogy(rod2_vf, rod2_vis, '*',
@@ -1820,6 +1833,12 @@ class ShearSimulation(object):
             if filestr == "rod6":
                 plt.semilogy(rod6_vf, rod6_vis, '*',
                              color=color, label='Guo: rod6')
+                
+            # if filestr == "rod3":
+            #     plt.semilogy(rod2_vf, rod2_vis, '*',
+            #                  color=color, label='Guo: rod2')
+            #     plt.semilogy(rod4_vf, rod4_vis, 'v',
+            #                  color=color, label='Guo: rod4')
 
             # if filestr == "curl0":
             #     plt.semilogy(rod4_vf, rod4_vis, '*',
@@ -2148,13 +2167,13 @@ class SimulationCompare(object):
         plt.semilogy(vfLunmono, pnLunmono, 'k-',
                      linewidth=2, label='Kinetic Theory')
 
-        markers = ["o", "v", "x", "s", "*", "D", "+"]
+        markers = ["o", "v", "x", "s", "*", "D", "+", "p"]
         colors = ["#e05252",
-                  "#e1893f", "#D6B11F", "#91b851", "#52a0e0",  "#1F73B8", "#7768ae"]
+                  "#e1893f", "#D6B11F", "#91b851", "#52a0e0",  "#1F73B8", "#7768ae", "brown"]
         # colors = ['Red', 'Orange', 'Pink',
         #           'Green', 'LightBlue', 'Blue', "Purple"]
         labelnames = ["Curl 0", "Curl 1",
-                      "Curl 2", "Curl 3", "Curl 4", "Curl 5", "Curl 6"]
+                      "Curl 2", "Curl 3", "Curl 4", "Curl 5", "Curl 6", "Rod 3"]
 
         # curl_images = []
         # if series_name == "curls":
@@ -2187,7 +2206,7 @@ class SimulationCompare(object):
             simulation.add_literature_data_to_graph(
                 is_normal=True,  color=colors[i])
 
-        plt.legend()
+        plt.legend(loc='upper left')
         # plt.legend(
         #     # plots,
         #     labelnames,
@@ -2230,7 +2249,7 @@ class SimulationCompare(object):
                                                                                                                  simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=0.8, linestyle='dotted', label=labelnames[i])
             simulation.add_literature_data_to_graph(
                 is_normal=False, color=colors[i])
-        plt.legend()
+        plt.legend(loc='upper left')
         # plt.legend(
         #     # plots,
         #     labelnames,
@@ -2282,7 +2301,7 @@ class SimulationCompare(object):
             start_stop = [[43046000, 45051000], [
                 33046000, 35051000], [34001000, 35051000]]
             colors = ["#e05252", "#e1893f", "#D6B11F",
-                      "#91b851", "#52a0e0",  "#1F73B8", "#7768ae"]
+                      "#91b851", "#52a0e0",  "#1F73B8", "#7768ae", "brown"]
 
             markers = ["o", "v", "x", "s", "*", "D", "+"]
 
@@ -2295,7 +2314,10 @@ class SimulationCompare(object):
                 for simulation in self.simulations:
                     radius = simulation.particletemplate.particle.r[0]
                     print("started {0}".format(simulation.volume_fractions[i]))
-                    ligghts_folder = 'liggghts_'+simulation.root_folder_name
+                    extra = ""
+                    if simulation.extra != "":
+                        extra = "_"+ simulation.extra
+                    ligghts_folder = 'liggghts_'+simulation.root_folder_name + extra
                     cpi_folder = 'cpi_'+simulation.root_folder_name + \
                         '_'
 
@@ -2358,9 +2380,9 @@ class SimulationCompare(object):
                             projected_area.append(area)
 
                     equiv_radius = simulation.particletemplate.particle.equvi_diameter / 2.0
-                    sphere_projected_area = 4./3. * math.pi * equiv_radius**3
+                    sphere_projected_area =  math.pi * equiv_radius**2
                     ave_effective_projected_area[i].append(
-                        np.mean(projected_area)**-2/sphere_projected_area**-2)
+                        (np.mean(projected_area)/sphere_projected_area)**-2)
 
                     simulation.liggghts_graph_stress_vs_time_specific(i)
                     simulation.load_vf_vs_stress(

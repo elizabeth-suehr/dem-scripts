@@ -48,8 +48,9 @@ def curl_series_simulation_specific(i):
     simulation.scale_domain = 1.2
     simulation.auto_setup()
     simulation.cycle_count = 2 * simulation.cycle_count
-
-    simulation.hasdate_in_foldername = True
+    #simulation.extra = "2024-01-29"
+    simulation.lock_symmetry = ["false","false","false","false","false","false","true","true"]
+    simulation.hasdate_in_foldername = False
     simulation.is_sbatch_high_priority = True
     simulation.sbatch_time = "2-00:00:00"
     simulation.use_liggghts_for_filling = True
@@ -90,7 +91,8 @@ def rod_series_simulation_specific(i):
     simulation.scale_domain = 1.2
     simulation.auto_setup()
     simulation.cycle_count = 2 * simulation.cycle_count
-    simulation.hasdate_in_foldername = True
+    simulation.extra = "2024-01-29"
+    simulation.hasdate_in_foldername = False
     simulation.is_sbatch_high_priority = True
     simulation.sbatch_time = "20-00:00:00"
     simulation.use_liggghts_for_filling = True
@@ -181,6 +183,8 @@ def curl_series_projected_area():
         simulation.load_vf_vs_stress(use_fortran=False, use_liggghts=True)
         all_simuations.append(simulation)
 
+    simulation1 = rod_series_simulation_specific(str(3))
+    all_simuations.append(simulation1)
     all = lebc.SimulationCompare(all_simuations)
     all.effective_projected_area(use_fortran=False, use_liggghts=True,
                                  general_folder_name="Curl_Projected_Areas", series_name="curls")
@@ -227,7 +231,8 @@ def curls_series_validate_all():
         simulation.load_vf_vs_stress(use_fortran=False, use_liggghts=True)
 
         all_simuations.append(simulation)
-
+    simulation1 = rod_series_simulation_specific(str(3))
+    all_simuations.append(simulation1)
     all = lebc.SimulationCompare(all_simuations)
     all.stress_vs_vf_graph_compare(use_fortran=False, use_liggghts=True,
                                    general_folder_name="Curl_Series", series_name="curls")
@@ -236,12 +241,43 @@ def curls_series_validate_all():
     # all.print_lowest_volumefraction_stress()
 
 
+def curl_extra_highvolume_fraction_box():
+    my_list = ["0", "0.25","0.5","0.75", "1", "2", "3", "4", "5", "6"]
+
+    all_simuations = []
+    for i in my_list:
+        aspect_ratio = i
+        simulation = curl_series_simulation_specific(aspect_ratio)
+
+        simulation.liggghts_graph_stress_vs_time_specific(7,"HighVolume_Box")
+
+        all_simuations.append(simulation)
+
+    
+    all = lebc.SimulationCompare(all_simuations)
+    all.high_vf_box_whisker_compare(use_fortran=False, use_liggghts=True,
+                                    general_folder_name="HighVolume_Box", series_name="curls", high_volume_fractions=[0],labelnames=["Curl 0", "Curl 0.25", "Curl 0.5", "Curl 0.75", "Curl 1",
+                                                                                                                                                              "Curl 2", "Curl 3", "Curl 4", "Curl 5", "Curl 6"])
+    # all.print_lowest_volumefraction_stress()
+
+def rod3_series_validate_liggghts():
+    specific_runs = [3]
+    for i in specific_runs:
+        simulation = rod_series_simulation_specific(str(i))
+        simulation.liggghts_graph_stress_vs_volume_fraction(
+            already_loaded=False)  # if true it won't try and reload the data
+        # if false it will reload data and plot all stress vs time graphs
+
+
 ########################
-make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
+#make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
 ########################
 # Call these together
 #curl_series_validate_liggghts()
-#curls_series_validate_all()
-
+curls_series_validate_all()
+#######################
+#rod3_series_validate_liggghts()
+#######################
+#curl_extra_highvolume_fraction_box()
 ########################
 #curl_series_projected_area()
