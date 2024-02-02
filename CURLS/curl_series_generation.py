@@ -48,11 +48,11 @@ def curl_series_simulation_specific(i):
     simulation.scale_domain = 1.2
     simulation.auto_setup()
     simulation.cycle_count = 2 * simulation.cycle_count
-    #simulation.extra = "2024-01-29"
+    simulation.extra = "2024-01-31"
     simulation.lock_symmetry = ["false","false","false","false","false","false","true","true"]
     simulation.hasdate_in_foldername = False
     simulation.is_sbatch_high_priority = True
-    simulation.sbatch_time = "2-00:00:00"
+    simulation.sbatch_time = "1-00:00:00"
     simulation.use_liggghts_for_filling = True
 
     return simulation
@@ -91,10 +91,10 @@ def rod_series_simulation_specific(i):
     simulation.scale_domain = 1.2
     simulation.auto_setup()
     simulation.cycle_count = 2 * simulation.cycle_count
-    simulation.extra = "2024-01-29"
-    simulation.hasdate_in_foldername = False
+    #simulation.extra = "2024-01-29"
+    simulation.hasdate_in_foldername = True
     simulation.is_sbatch_high_priority = True
-    simulation.sbatch_time = "20-00:00:00"
+    simulation.sbatch_time = "1-00:00:00"
     simulation.use_liggghts_for_filling = True
 
     return simulation
@@ -267,17 +267,21 @@ def rod3_series_validate_liggghts():
         simulation.liggghts_graph_stress_vs_volume_fraction(
             already_loaded=False)  # if true it won't try and reload the data
         # if false it will reload data and plot all stress vs time graphs
-
+def curl0_7_graph_specfic():
+    simulation = curl_series_simulation_specific(str(0))
+    simulation.liggghts_graph_stress_vs_time_specific(7)
 
 ########################
 #make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
 ########################
 # Call these together
 #curl_series_validate_liggghts()
-curls_series_validate_all()
+#curls_series_validate_all()
 #######################
 #rod3_series_validate_liggghts()
 #######################
 #curl_extra_highvolume_fraction_box()
 ########################
 #curl_series_projected_area()
+########################
+curl0_7_graph_specfic()
