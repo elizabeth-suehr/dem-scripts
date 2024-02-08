@@ -47,10 +47,11 @@ def curl_series_simulation_specific(i):
     simulation = lebc.ShearSimulation(particle_templete)
     simulation.scale_domain = 1.2
     simulation.auto_setup()
-    simulation.cycle_count = 2 * simulation.cycle_count
-    simulation.extra = "2024-01-31"
-    simulation.lock_symmetry = ["false","false","false","false","false","false","true","true"]
-    simulation.hasdate_in_foldername = False
+    simulation.relaxationtime = [0.025,0.025,0.025,0.025,0.005,0.0025,0.0025,0.0025]
+    simulation.cycle_count = [60e6, 40e6, 40e6, 30e6, 60e6, 100e6, 100e6, 100e6]
+    #simulation.extra = "2024-01-31"
+    simulation.lock_symmetry = ["false","false","false","false","false","false","false","false"]
+    simulation.hasdate_in_foldername = True
     simulation.is_sbatch_high_priority = True
     simulation.sbatch_time = "1-00:00:00"
     simulation.use_liggghts_for_filling = True
@@ -90,7 +91,8 @@ def rod_series_simulation_specific(i):
     simulation = lebc.ShearSimulation(particle_templete)
     simulation.scale_domain = 1.2
     simulation.auto_setup()
-    simulation.cycle_count = 2 * simulation.cycle_count
+    simulation.relaxationtime = [0.025,0.025,0.025,0.025,0.005,0.0025,0.0025,0.0025]
+    simulation.cycle_count = [60e6, 40e6, 40e6, 30e6, 60e6, 100e6, 100e6, 100e6]
     #simulation.extra = "2024-01-29"
     simulation.hasdate_in_foldername = True
     simulation.is_sbatch_high_priority = True
@@ -272,7 +274,7 @@ def curl0_7_graph_specfic():
     simulation.liggghts_graph_stress_vs_time_specific(7)
 
 ########################
-#make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
+make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
 ########################
 # Call these together
 #curl_series_validate_liggghts()
@@ -284,4 +286,4 @@ def curl0_7_graph_specfic():
 ########################
 #curl_series_projected_area()
 ########################
-curl0_7_graph_specfic()
+#curl0_7_graph_specfic()
