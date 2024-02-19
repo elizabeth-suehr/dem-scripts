@@ -47,13 +47,14 @@ def curl_series_simulation_specific(i):
     simulation = lebc.ShearSimulation(particle_templete)
     simulation.scale_domain = 1.2
     simulation.auto_setup()
+    simulation.body_position_print_count = [5000,5000,5000,5000,10000,50000,50000,50000]
     simulation.relaxationtime = [0.025,0.025,0.025,0.025,0.005,0.0025,0.0025,0.0025]
-    simulation.cycle_count = [60e6, 40e6, 40e6, 30e6, 60e6, 100e6, 100e6, 100e6]
-    #simulation.extra = "2024-01-31"
+    simulation.cycle_count = [60e6, 40e6, 40e6, 30e6, 80e6, 100e6, 100e6, 100e6]
+    simulation.extra = "2024-02-07"
     simulation.lock_symmetry = ["false","false","false","false","false","false","false","false"]
-    simulation.hasdate_in_foldername = True
-    simulation.is_sbatch_high_priority = True
-    simulation.sbatch_time = "1-00:00:00"
+    simulation.hasdate_in_foldername = False
+    simulation.is_sbatch_high_priority = False
+    simulation.sbatch_time = "5-00:00:00"
     simulation.use_liggghts_for_filling = True
 
     return simulation
@@ -91,12 +92,13 @@ def rod_series_simulation_specific(i):
     simulation = lebc.ShearSimulation(particle_templete)
     simulation.scale_domain = 1.2
     simulation.auto_setup()
+    simulation.body_position_print_count = [5000,5000,5000,5000,10000,50000,50000,50000]
     simulation.relaxationtime = [0.025,0.025,0.025,0.025,0.005,0.0025,0.0025,0.0025]
-    simulation.cycle_count = [60e6, 40e6, 40e6, 30e6, 60e6, 100e6, 100e6, 100e6]
-    #simulation.extra = "2024-01-29"
-    simulation.hasdate_in_foldername = True
-    simulation.is_sbatch_high_priority = True
-    simulation.sbatch_time = "1-00:00:00"
+    simulation.cycle_count = [60e6, 40e6, 40e6, 30e6, 80e6, 100e6, 100e6, 100e6]
+    simulation.extra = "2024-02-07"
+    simulation.hasdate_in_foldername = False
+    simulation.is_sbatch_high_priority = False
+    simulation.sbatch_time = "5-00:00:00"
     simulation.use_liggghts_for_filling = True
 
     return simulation
@@ -237,9 +239,9 @@ def curls_series_validate_all():
     all_simuations.append(simulation1)
     all = lebc.SimulationCompare(all_simuations)
     all.stress_vs_vf_graph_compare(use_fortran=False, use_liggghts=True,
-                                   general_folder_name="Curl_Series", series_name="curls")
+                                   general_folder_name="Curl_Series_2024-02-07", series_name="curls")
     all.high_vf_box_whisker_compare(use_fortran=False, use_liggghts=True,
-                                    general_folder_name="HighVolume_Box", series_name="curls", high_volume_fractions=[7])
+                                    general_folder_name="HighVolume_Box_2024-02-07", series_name="curls", high_volume_fractions=[7])
     # all.print_lowest_volumefraction_stress()
 
 
@@ -273,6 +275,15 @@ def curl0_7_graph_specfic():
     simulation = curl_series_simulation_specific(str(0))
     simulation.liggghts_graph_stress_vs_time_specific(7)
 
+
+def curl5_7_histogram_check():
+    simulation = curl_series_simulation_specific(str(5))
+    all_simulations = []
+    all_simulations.append(simulation)
+    all = lebc.SimulationCompare(all_simulations)
+    all.interlocking_time_historgram(use_liggghts= True, general_folder_name = "InterlockingHistograms", series_name = "curls", test_lowest_vf_count = 0)
+
+
 ########################
 make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
 ########################
@@ -287,3 +298,4 @@ make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
 #curl_series_projected_area()
 ########################
 #curl0_7_graph_specfic()
+#curl5_7_histogram_check()

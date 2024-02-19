@@ -591,7 +591,7 @@ class ShearSimulation(object):
         self.cycle_delay = [5e6, 5e6, 5e6, 5e6, 5e6, 5e6, 5e6, 5e6]
         self.stress_print_count = [100000, 100000,
                                    50000, 50000, 100000, 60000, 60000, 60000]
-        self.stress_vs_time_cutoff_range = [0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.3, 0.3]
+        self.stress_vs_time_cutoff_range = [0.8, 0.7, 0.6, 0.5, 0.7, 0.7, 0.7, 0.7]
         self.body_position_print_count = [5000,5000,5000,5000,10000,10000,10000,10000]
         self.lock_symmetry = ["false","false","false","false","false","false","false","false"]
         self.save_count = 5000
@@ -1806,11 +1806,11 @@ class ShearSimulation(object):
             if filestr == "rod6":
                 plt.semilogy(rod6_vf, rod6_normal, '*',
                              color=color, label='Guo: rod6')
-            # if filestr == "curl0":
-            #     plt.semilogy(rod4_vf, rod4_normal, '*',
-            #                  color=color, label='Suehr: rod4')
-            #     plt.semilogy(rod6_vf, rod6_normal, '*',
-            #                  color=color, label='Guo: rod6')
+            if filestr == "curl0":
+                plt.semilogy(rod4_vf, rod4_normal, '*',
+                             color=color, label='Suehr: rod4')
+                plt.semilogy(rod6_vf, rod6_normal, '*',
+                             color=color, label='Guo: rod6')
             # if filestr == "curl_5":
             #     plt.semilogy(curl_vf, curl_5_yy, '*',
             #                  color=color, label='Suehr: curl_5')
@@ -1820,9 +1820,9 @@ class ShearSimulation(object):
             #                  color=color, label='Guo: rod2')
             #     plt.semilogy(rod4_vf, rod4_normal, 'v',
             #                  color=color, label='Guo: rod4')
-            # if filestr == "rod5":
-            #     plt.semilogy(curl_vf, curl_0_yy, '*', color=color,
-            #                  label='Suehr: curl_0 or rod5')
+            if filestr == "rod5":
+                plt.semilogy(curl_vf, curl_0_yy, '*', color=color,
+                             label='Suehr: curl_0 or rod5')
         else:
             if filestr == "rod2":
                 plt.semilogy(rod2_vf, rod2_vis, '*',
@@ -1840,11 +1840,11 @@ class ShearSimulation(object):
             #     plt.semilogy(rod4_vf, rod4_vis, 'v',
             #                  color=color, label='Guo: rod4')
 
-            # if filestr == "curl0":
-            #     plt.semilogy(rod4_vf, rod4_vis, '*',
-            #                  color=color, label='Suehr: rod4')
-            #     plt.semilogy(rod6_vf, rod6_vis, '*',
-            #                  color=color, label='Guo: rod6')
+            if filestr == "curl0":
+                plt.semilogy(rod4_vf, rod4_vis, '*',
+                             color=color, label='Suehr: rod4')
+                plt.semilogy(rod6_vf, rod6_vis, '*',
+                             color=color, label='Guo: rod6')
             # if filestr == "curl_3":
             #     plt.semilogy(curl_vf, curl_3_xy, '*',
             #                  color=color, label='Suehr: curl_3')
@@ -2499,96 +2499,183 @@ class SimulationCompare(object):
             series_name), dpi=250)
         plt.clf()
 
-    # def interlocking_time_historgram(self, use_fortran=False, use_liggghts=True, general_folder_name="", series_name="", test_lowest_vf_count=0):
-    #     import overlapping_circles as oc
-    #     if general_folder_name == "":
-    #         general_folder_name = "Interlocking_Histograms_" + \
-    #             self.simulations[0].root_folder_name
-    #     if series_name == "":
-    #         series_name = "Interlocking_Histograms_" + \
-    #             self.simulations[0].particletemplate.particle.file_shape_name
+    def interlocking_time_historgram(self, use_fortran=False, use_liggghts=True, general_folder_name="", series_name="", test_lowest_vf_count=0):
+        import overlapping_circles as oc
+        if general_folder_name == "":
+            general_folder_name = "Interlocking_Histograms_" + \
+                self.simulations[0].root_folder_name
+        if series_name == "":
+            series_name = "Interlocking_Histograms_" + \
+                self.simulations[0].particletemplate.particle.file_shape_name
 
-    #     try:
-    #         os.makedirs(general_folder_name)
-    #         import overlapping_circles as oc
-    #     except OSError:
-    #         # print(OSError)
-    #         print("General folder name for effective_projected_area already exists")
+        try:
+            os.makedirs(general_folder_name)
+            import overlapping_circles as oc
+        except OSError:
+            # print(OSError)
+            print("General folder name for Interlocking_Histograms already exists")
 
-    #     if use_liggghts:
-    #         ave_effective_projected_area = []
-    #         stress_yy = []
-    #         stress_xy = []
+        if use_liggghts:
 
-    #         plt.figure(1)
-    #         plt.figure(2)
 
-    #         start_stop = [[43046000, 45051000], [
-    #             33046000, 35051000], [34001000, 35051000]]
-    #         colors = itertools.cycle(["#e05252", "#e1893f", "#D6B11F",
-    #                                   "#91b851", "#52a0e0",  "#1F73B8", "#7768ae"])
 
-    #         markers = ["o", "v", "x", "s", "*", "D", "+"]
+            for simulation in self.simulations:
+                for j in range(7, len(simulation.volume_fractions)):
+                    # Assumes only one size radii per simulation
 
-    #         for simulation in self.simulations:
-    #             for i in range(0, len(simulation.volume_fractions)):
-    #                 # Assumes only one size radii per simulation
-    #                 ave_effective_projected_area.append([])
-    #                 stress_yy.append([])
-    #                 stress_xy.append([])
+                    frames = simulation.body_position_print_count[j]
+                    dt = simulation.delta_time * simulation.relaxationtime[j]
 
-    #                 radius = simulation.particletemplate.particle.r[0]
-    #                 print("started {0}".format(simulation.volume_fractions[i]))
-    #                 ligghts_folder = 'liggghts_'+simulation.root_folder_name
-    #                 cpi_folder = 'cpi_'+simulation.root_folder_name + \
-    #                     '_'
+                    print("started {0}".format(simulation.volume_fractions[j]))
+                    ligghts_folder = 'liggghts_'+simulation.root_folder_name +"_"+ simulation.extra
+                    cpi_folder = 'cpi_'+simulation.root_folder_name + \
+                        '_'
 
-    #                 try:
-    #                     collisions_file = open(ligghts_folder + '/' + cpi_folder +
-    #                                            str(i) + '/collision.txt', "r")
-    #                 except OSError:
-    #                     # print(OSError)
-    #                     print("Could not find:" + ligghts_folder + '/' +
-    #                           cpi_folder + str(i) + '/collision.txt')
+                    try:
+                        collisions_file = open(ligghts_folder + '/' + cpi_folder +
+                                               str(j) + '/array.txt', "r")
+                    except OSError:
+                        # print(OSError)
+                        print("Could not find:" + ligghts_folder + '/' +
+                              cpi_folder + str(j) + '/array.txt')
+                    with collisions_file:
+                        line = collisions_file.readline()
+                        line = line[:-2]
+                        string_values = line.split(", ")
 
-    #                     continue
+                        a = []
+                        for k in range(len(string_values)):
+                            a.append(float(string_values[k]))
 
-    #                 current_step = 0
-    #                 with collisions_file:
-    #                     for line in collisions_file:
-    #                         stringvalues = line.split()
-    #                         if stringvalues[0] == "file":
+                        a = np.array(a)
+                        a = a * frames * dt * 100
 
-    #                             collision_counts[i][j][k] = count
-    #                             k = int(stringvalues[1])
-    #                             count = 0
-    #                             list_of_particles = []
-    #                         elif float(stringvalues[0]) >= 0 and float(stringvalues[1]) >= 0:
-    #                             if not int(stringvalues[0]) in list_of_particles:
-    #                                 count += 1
-    #                                 list_of_particles.append(int(stringvalues[0]))
-    #                             if not int(stringvalues[1]) in list_of_particles:
-    #                                 count += 1
-    #                                 list_of_particles.append(int(stringvalues[1]))
+                        print(np.max(a))
 
-    #                             value_one = int(stringvalues[0])
-    #                             value_two = int(stringvalues[1])
+                        # x_first = np.linspace(1 * frames * dt * 100, 20 * frames * dt * 100, max_value)
+                        # p = np.polyfit(x_first, np.log(values[:20]), 1)
 
-    #                             if value_one < value_two:
-    #                                 per_particle_collision_count[value_one][value_two] += 1
-    #                             else:
-    #                                 per_particle_collision_count[value_two][value_one] += 1
+                        # # Convert the polynomial back into an exponential
+                        # a = np.exp(p[1])
+                        # b = p[0]
+                        # x_fitted = np.linspace(np.min(x_first), np.max(x_first), 100)
+                        # y_fitted = a * np.exp(b * x_fitted)
 
-    #     per_particle_total_time = np.zeros((particle_count[j]))
-    #     per_particle_redudant_count = np.zeros((particle_count[j]))
+                        fig = plt.figure(figsize=(8, 8))
+                        ax = fig.add_subplot(111)
+                        # print(a)
+                        counts, bins, bars = plt.hist(a, 
+                                                      bins=np.arange(
+                            frames * dt * 100, 3000 * frames * dt * 100, 8 * frames * dt * 100),
+                              ec="white", color="blue")
 
-    #     for k in range(particle_count[j]):
-    #         for l in range(particle_count[j]):
-    #             if per_particle_collision_count[k][l] > 0:
-    #                 per_particle_total_time[k] += per_particle_collision_count[k][l]
-    #                 per_particle_total_time[l] += per_particle_collision_count[k][l]
-    #                 per_particle_redudant_count[k] += 1
-    #                 per_particle_redudant_count[l] += 1
+                        # print("bins")
+                        # print(bins)
+                        # print("bars")
+                        # print(counts)
+
+                        # test_count = 0
+                        # for bin in bins:
+                        #     if bin >= cutoff:
+                        #         break
+                        #     else:
+                        #         test_count += 1
+
+                        # summ = 0.0
+                        # for k in range(test_count, len(counts)):
+                        #     summ += counts[k] * bins[k]
+
+                        # result = summ
+
+                        # center_bins = []
+                        # for k in range(0, len(bins)-1):
+                        #     center_bins.append((bins[k] + bins[k+1])/2)
+
+                        # count = 0
+                        # for k in range(0, len(counts)):
+                        #     if counts[k] > 1.0:
+                        #         count += 1
+                        #     else:
+                        #         count -= 1
+                        #         break
+                        # if j > 3:
+                        #     p = np.polyfit(center_bins[:count], np.log(counts[:count]), 1)
+                        #     aa = np.exp(p[1])
+                        #     bb = p[0]
+                        #     x_fitted = np.linspace(
+                        #         np.min(center_bins[:count]), np.max(center_bins[:count]), 100)
+                        #     y_fitted = aa * np.exp(bb * x_fitted)   
+                    # plt.plot(x_fitted, y_fitted)
+                    # plt.plot(center_bins,counts)
+
+                    #
+                    # result = integrate.quad(
+                    #     lambda x: aa * np.exp(bb * x) * x, 1.25, 4)
+
+                    # print(file_dir_1[i] + file_dir_2[j])
+
+                    # if j == 4:
+                    #     # result[0]  use this instead of integration
+                    #     vf_30_results.append(result)
+                    # if j == 5:
+                    #     vf_40_results.append(result)
+                    # if j == 6:
+                    #     vf_45_results.append(result)
+
+                    # print(len(center_bins))
+                    # print(len(counts))
+
+                        plt.ylim([1, 40000])
+                        plt.xlim([0.0,2.0])
+                        plt.xticks(fontsize=25)
+                        plt.yticks(fontsize=25)
+                        plt.yscale("log")
+                        plt.xlabel("Interlocking Duration ($\.γ$t)", fontsize=34)
+                        plt.ylabel("Number of Interlocks", fontsize=34)
+
+                        plt.savefig(general_folder_name + "/histogram_{}.pdf".format(series_name),
+                            bbox_inches="tight",
+                        )
+        #                 continue
+        #             collision_counts = np.zeros((1800))
+        #             k = 0
+        #             per_particle_collision_count = np.zeros((simulation.particle_count[j], simulation.particle_count[j]))
+        #             list_of_particles = []
+        #             with collisions_file:
+        #                 for line in collisions_file:
+        #                     stringvalues = line.split()
+        #                     if stringvalues[0] == "file":
+
+        #                         collision_counts[k] = count
+        #                         k = int(stringvalues[1])
+        #                         count = 0
+        #                         list_of_particles = []
+        #                     elif float(stringvalues[0]) >= 0 and float(stringvalues[1]) >= 0:
+        #                         if not int(stringvalues[0]) in list_of_particles:
+        #                             count += 1
+        #                             list_of_particles.append(int(stringvalues[0]))
+        #                         if not int(stringvalues[1]) in list_of_particles:
+        #                             count += 1
+        #                             list_of_particles.append(int(stringvalues[1]))
+
+        #                         value_one = int(stringvalues[0])
+        #                         value_two = int(stringvalues[1])
+
+        #                         if value_one < value_two:
+        #                             per_particle_collision_count[value_one][value_two] += 1
+        #                         else:
+        #                             per_particle_collision_count[value_two][value_one] += 1
+
+        # per_particle_total_time = np.zeros((particle_count[j]))
+        # per_particle_redudant_count = np.zeros((particle_count[j]))
+
+        # for k in range(particle_count[j]):
+        #     for l in range(particle_count[j]):
+        #         if per_particle_collision_count[k][l] > 0:
+        #             per_particle_total_time[k] += per_particle_collision_count[k][l]
+        #             per_particle_total_time[l] += per_particle_collision_count[k][l]
+        #             per_particle_redudant_count[k] += 1
+        #             per_particle_redudant_count[l] += 1
 
     # def log_normal_compare(self,use_fortran=False, use_liggghts=True, general_folder_name="", series_name="",volume_fraction=[7]):
     #     if general_folder_name == "":
@@ -2609,50 +2696,31 @@ class SimulationCompare(object):
     #         for i in range(volume_fraction[0], np.max(volume_fraction)+1):
     #             for simulation in self.simulations:
 
-    # for j in range(len(new3d_points)):
-    #     new3d_points[j] = point_rotation_by_quaternion(new3d_points[j], quat)
 
-    # points = np.empty((5, 3))
+# # Just for fun color maps stuff
+# def test_plot_color_maps():
+#     N = 30
+#     test_cmaps = ['Dark2', 'rainbow', 'Wistia', 'Set2']
+#     # segmented_cmaps = [matplotlib.colors.ListedColormap(
+#     #     plt.get_cmap(t)(np.linspace(0, 1, N))) for t in test_cmaps]
+#     nrows = len(test_cmaps)
+#     gradient = np.linspace(0, 1, 256)
+#     gradient = np.vstack((gradient, gradient))
+#     cmap_category = 'test'
+#     cmap_list = test_cmaps
+#     fig, axes = plt.subplots(nrows=nrows)
+#     fig.subplots_adjust(top=0.95, bottom=0.01, left=0.2, right=0.99)
+#     axes[0].set_title(cmap_category + ' colormaps', fontsize=14)
 
-    # nodes = []
-    # radiuses = []
+#     for ax, name in zip(axes, cmap_list):
+#         ax.imshow(gradient, aspect='auto', cmap=plt.get_cmap(name))
+#         pos = list(ax.get_position().bounds)
+#         x_text = pos[0] - 0.01
+#         y_text = pos[1] + pos[3]/2.
+#         fig.text(x_text, y_text, name, va='center', ha='right', fontsize=10)
 
-    # for j in range(len(new3d_points)):
-    #     nodes.append([new3d_points[j][2], new3d_points[j][3]])
-    #     radiuses.append(radius)
+#     # Turn off *all* ticks & spines, not just the ones with colormaps.
+#     for ax in axes:
+#         ax.set_axis_off()
 
-    # nodes = np.array(nodes)
-    # radiuses = np.array(radiuses)
-
-    # area = oc.getArea(nodes, radiuses)
-    # projected_area.append(area)
-    # # print(area)
-
-
-# Just for fun color maps stuff
-def test_plot_color_maps():
-    N = 30
-    test_cmaps = ['Dark2', 'rainbow', 'Wistia', 'Set2']
-    # segmented_cmaps = [matplotlib.colors.ListedColormap(
-    #     plt.get_cmap(t)(np.linspace(0, 1, N))) for t in test_cmaps]
-    nrows = len(test_cmaps)
-    gradient = np.linspace(0, 1, 256)
-    gradient = np.vstack((gradient, gradient))
-    cmap_category = 'test'
-    cmap_list = test_cmaps
-    fig, axes = plt.subplots(nrows=nrows)
-    fig.subplots_adjust(top=0.95, bottom=0.01, left=0.2, right=0.99)
-    axes[0].set_title(cmap_category + ' colormaps', fontsize=14)
-
-    for ax, name in zip(axes, cmap_list):
-        ax.imshow(gradient, aspect='auto', cmap=plt.get_cmap(name))
-        pos = list(ax.get_position().bounds)
-        x_text = pos[0] - 0.01
-        y_text = pos[1] + pos[3]/2.
-        fig.text(x_text, y_text, name, va='center', ha='right', fontsize=10)
-
-    # Turn off *all* ticks & spines, not just the ones with colormaps.
-    for ax in axes:
-        ax.set_axis_off()
-
-    plt.show()
+#     plt.show()
