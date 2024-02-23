@@ -383,14 +383,14 @@ fn main() {
 
                     let mut file_output = "".to_string();
 
-                    for i in 0..500 {
+                    for i in 0..3000 {
                         file_output += &("file ".to_string() + &i.to_string() + "\n");
                         let file_name = "./".to_string()
                             + &curl.to_string()
                             + "/"
                             + &vf.to_string()
                             + "/cpi_"
-                            + &(start + i * 5000).to_string()
+                            + &(start + i * 10000).to_string()
                             + ".txt";
                         particles.clear();
                         particles =
