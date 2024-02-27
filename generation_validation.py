@@ -1113,8 +1113,12 @@ class ShearSimulation(object):
         #     int(self.cycle_delay[i])))
 
         if self.body_position_print_count[i] > 0:
-            fout.write('dump               dmpvtk all custom/vtk {0} {1} id id_multisphere x y z vx vy vz\n'.format(
-                self.body_position_print_count[i], ('vtk_'+self.root_folder_name + '_' + str(i) + '/series_*.vtk')))
+            if self.is_single_sphere:
+                fout.write('dump               dmpvtk all custom/vtk {0} {1} id x y z vx vy vz\n'.format(
+                    self.body_position_print_count[i], ('vtk_'+self.root_folder_name + '_' + str(i) + '/series_*.vtk')))
+            else:
+                fout.write('dump               dmpvtk all custom/vtk {0} {1} id id_multisphere x y z vx vy vz\n'.format(
+                    self.body_position_print_count[i], ('vtk_'+self.root_folder_name + '_' + str(i) + '/series_*.vtk')))
 
         fout.write('run               {0}\n'.format(
             int(self.cycle_count[i])))
