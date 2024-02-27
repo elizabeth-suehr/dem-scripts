@@ -966,7 +966,12 @@ class ShearSimulation(object):
         self.generate_ligghts_particle_data_file(root_name)
 
         for i in range(len(self.volume_fractions)):
-            if self.volume_fractions[i] < 0.1:
+            if not self.is_single_sphere:
+                self.generate_liggghts_init_file(
+                    root_name, i, [2, 2, 1], random_orientation)
+                self.generate_liggghts_sbatch_file(
+                    root_name, i, [2, 2, 1])
+            elif self.volume_fractions[i] < 0.1:
                 self.generate_liggghts_init_file(
                     root_name, i, [3, 2, 1], random_orientation)
                 self.generate_liggghts_sbatch_file(
@@ -1030,9 +1035,9 @@ class ShearSimulation(object):
             self.domain[0][0], self.domain[1][0], self.domain[0][1], self.domain[1][1], self.domain[0][2], self.domain[1][2]))
 
         fout.write('create_box        {} domain\n\n'.format(1))
-
-        fout.write('neighbor          {0:.3e} bin\n'.format(
-            self.particletemplate.particle.max_radius * 1.1))
+        if not self.is_single_sphere:
+            fout.write('neighbor          {0:.3e} bin\n'.format(
+                self.particletemplate.particle.max_radius * 1.1))
 
         # # fout.write('neigh_modify      every 1 delay 0 check no one {0} page {1}\n\n'.format(npar_max,51*npar_max))
         # fout.write(
