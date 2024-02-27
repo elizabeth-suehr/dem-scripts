@@ -1083,7 +1083,10 @@ class ShearSimulation(object):
         else:
             fout.write(
                 '                  omega constant 0. 0. 0. insert_every once overlapcheck yes all_in yes particles_in_region {0} region domain ntry_mc 100000000 \n'.format(self.particle_count[i]))
-        fout.write('fix               ms nve_group{0} multisphere\n'.format(1))
+        if self.is_single_sphere:
+            fout.write('fix               integr1 nve_group{0} nve/sphere\n'.format(1))
+        else:
+            fout.write('fix               ms nve_group{0} multisphere\n'.format(1))
 
         fout.write('run               1\n\n')
 
