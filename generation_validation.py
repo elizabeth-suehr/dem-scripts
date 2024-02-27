@@ -529,6 +529,7 @@ class ShearSimulation(object):
         self.save_count = 0
         self.body_position_print_count = []
         self.lock_symmetry = []
+        self.is_single_sphere = False
 
         # Validation Variables
         self.liggghts_loaded_volume_fraction = []
@@ -1061,9 +1062,14 @@ class ShearSimulation(object):
         fout.write('# Set up particle insertion\n')
 
         fout.write('group             nve_group{0} region domain\n'.format(1))
+        if not self.is_single_sphere:
+            fout.write('fix               pts{0} nve_group{0} particletemplate/multisphere 123457 atom_type {0} volume_limit 1e-18 density constant {1:.3f} nspheres {2} ntry 10000000 spheres file {3} scale 1.0 type {4}\n'.format(
+                1, self.particletemplate.particle.density, len(self.particletemplate.particle.r), "particle_data", 1))
+        if self.is_single_sphere:
+            fout.write('fix               pts{0} nve_group{0} particletemplate/sphere 123457 atom_type {0} volume_limit 1e-18 density constant {1:.3f} radius constant {2}\n'.format(
+                1, self.particletemplate.particle.density, self.particletemplate.particle.r[0]))
+        # fix               pts1 nve_group1 particletemplate/sphere 123457 atom_type 1 volume_limit 1e-18 density constant 2500.000 radius constant 0.000050
 
-        fout.write('fix               pts{0} nve_group{0} particletemplate/multisphere 123457 atom_type {0} volume_limit 1e-18 density constant {1:.3f} nspheres {2} ntry 10000000 spheres file {3} scale 1.0 type {4}\n'.format(
-            1, self.particletemplate.particle.density, len(self.particletemplate.particle.r), "particle_data", 1))
         fout.write(
             'fix               pdd{0} nve_group{0} particledistribution/discrete 15485867 1 pts{0} 1.0\n'.format(1))
         fout.write(
@@ -1128,8 +1134,10 @@ class ShearSimulation(object):
             mpi_tasks = mpi_cores // 2 + mpi_cores % 2
 
         sbatch_start = "#!/bin/bash\n#SBATCH --job-name="
-        sbatch_start_mid = "#SBATCH --nodes={}\n#SBATCH --ntasks-per-node={}\n#SBATCH --cpus-per-task={}\n".format(
-            mpi_nodes, mpi_cores, 1)
+        # sbatch_start_mid = "#SBATCH --nodes={}\n#SBATCH --ntasks-per-node={}\n#SBATCH --cpus-per-task={}\n".format(
+        #     mpi_nodes, mpi_cores, 1)
+        sbatch_start_mid = "#SBATCH --ntasks-per-node={}\n".format(
+             mpi_cores)
 
         sbatch_partition = "\n#SBATCH --partition="
         if self.is_sbatch_high_priority:
@@ -2633,7 +2641,7 @@ class SimulationCompare(object):
                         plt.xlabel("Interlocking Duration ($\.γ$t)", fontsize=34)
                         plt.ylabel("Number of Interlocks", fontsize=34)
 
-                        plt.savefig(general_folder_name + "/histogram_{}.pdf".format(series_name),
+                        plt.savefig(general_folder_name + "/histogram_{0}_{1}.pdf".format(series_name, j),
                             bbox_inches="tight",
                         )
         #                 continue
