@@ -52,6 +52,7 @@ def sphere_series_simulation_specific():
     simulation.is_sbatch_high_priority = False
     simulation.sbatch_time = "2-00:00:00"
     simulation.use_liggghts_for_filling = False
+    simulation.is_single_sphere = True
 
     return simulation
 
