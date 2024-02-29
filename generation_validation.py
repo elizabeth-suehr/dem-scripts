@@ -1369,7 +1369,7 @@ class ShearSimulation(object):
             n_length = int(len(kinetic_normal_stress) * self.stress_vs_time_cutoff_range[i]) * \
                 self.stress_print_count[i] * \
                 self.delta_time * self.relaxationtime[i] * self.shearstrainrate
-
+            
             plt.semilogy([n_length, n_length], [(np.max(kinetic_normal_stress + collisional_normal_stress) / 100 / (self.particletemplate.particle.density * self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2)),
                          (np.max(kinetic_normal_stress + collisional_normal_stress) / (self.particletemplate.particle.density * self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2))])
             self.l_normal_stress_vs_time.append((kinetic_normal_stress + collisional_normal_stress) / (self.particletemplate.particle.density *
@@ -2519,6 +2519,36 @@ class SimulationCompare(object):
             series_name), dpi=250)
         plt.clf()
 
+
+    def interlocking_time_historgram_command_print(self, use_fortran=False, use_liggghts=True, general_folder_name="", series_name="", test_lowest_vf_count=0):
+        if use_liggghts:
+            for simulation in self.simulations:
+                ligghts_folder = 'liggghts_'+simulation.root_folder_name +"_"+ simulation.extra
+                cpi_folders = ""
+
+                start_count = ""
+                for j in range(4, len(simulation.volume_fractions)):
+                    # Assumes only one size radii per simulation
+
+                   
+
+                    # print("started {0}".format(simulation.volume_fractions[j]))
+                    
+                    cpi_folder = 'cpi_'+simulation.root_folder_name + \
+                        '_' + str(j)
+                    cpi_folders += cpi_folder + " "
+
+                    simulation.liggghts_graph_stress_vs_time_specific(j)
+                    s_length = int(len(simulation.l_shear_stress_vs_time[j-4]) *
+                                   simulation.stress_vs_time_cutoff_range[j])
+                    start_count += str(s_length * simulation.body_position_print_count[j])  + " "
+
+                print("./interlocking_detection domain {0:.6f} {1:.6f} {2:.6f} particle {3} simulation {4} volumefractions {5}startcount {6}".format(simulation.domain[1][0],simulation.domain[1][1],simulation.domain[1][2], simulation.root_folder_name, ligghts_folder, cpi_folders, start_count))
+
+                    
+                
+
+
     def interlocking_time_historgram(self, use_fortran=False, use_liggghts=True, general_folder_name="", series_name="", test_lowest_vf_count=0):
         import overlapping_circles as oc
         if general_folder_name == "":
@@ -2540,7 +2570,7 @@ class SimulationCompare(object):
 
 
             for simulation in self.simulations:
-                for j in range(7, len(simulation.volume_fractions)):
+                for j in range(4, len(simulation.volume_fractions)):
                     # Assumes only one size radii per simulation
 
                     frames = simulation.body_position_print_count[j]
@@ -2586,7 +2616,7 @@ class SimulationCompare(object):
                         # print(a)
                         counts, bins, bars = plt.hist(a, 
                                                       bins=np.arange(
-                            frames * dt * 100, 3000 * frames * dt * 100, 8 * frames * dt * 100),
+                            frames * dt * 100, 5000 * frames * dt * 100, 10 * frames * dt * 100),
                               ec="white", color="blue")
 
                         # print("bins")
@@ -2646,8 +2676,8 @@ class SimulationCompare(object):
                     # print(len(counts))
 
                         plt.ylim([1, 40000])
-                        plt.xlim([0.0,2.0])
-                        plt.xticks(fontsize=25)
+                        plt.xlim([0.0,4.0])
+                        plt.xticks([0.0,1.0,2.0,3.0,4.0],fontsize=25)
                         plt.yticks(fontsize=25)
                         plt.yscale("log")
                         plt.xlabel("Interlocking Duration ($\.γ$t)", fontsize=34)

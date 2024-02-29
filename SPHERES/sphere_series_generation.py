@@ -44,7 +44,7 @@ def sphere_series_simulation_specific():
     # Generate Simulation
     simulation = lebc.ShearSimulation(particle_templete)
     simulation.auto_setup()
-    simulation.relaxationtime = [0.025,0.025,0.025,0.025,0.025,0.025,0.025,0.025]
+    simulation.relaxationtime = [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1]
     simulation.cycle_count = [60e6, 40e6, 40e6, 30e6, 30e6, 30e6, 30e6, 30e6]
     # simulation.extra = "2024-02-07"
     simulation.lock_symmetry = ["false","false","false","false","false","false","false","false"]
@@ -52,7 +52,7 @@ def sphere_series_simulation_specific():
     simulation.is_sbatch_high_priority = False
     simulation.sbatch_time = "2-00:00:00"
     simulation.use_liggghts_for_filling = False
-    simulation.is_single_sphere = True
+    simulation.is_single_sphere = False
 
     return simulation
 
