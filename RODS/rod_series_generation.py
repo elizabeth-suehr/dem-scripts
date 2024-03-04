@@ -12,7 +12,6 @@ def load_lebc():
 lebc = load_lebc()
 # All the rods have the same equivalent volume diameter
 
-
 def rod_series_simulation_specific(i):
     aspect_ratio = i
     filename = "rod" + str(aspect_ratio)
@@ -20,7 +19,7 @@ def rod_series_simulation_specific(i):
     particle = lebc.Particle()
     # particle.create_multisphere(filename, density, monticarlo_count, is_particle_already_centered?)
     particle.load_or_create_multisphere(
-        filename, 2500.0, 600_000_000, True)
+        filename, 2500.0, 600_000_000, is_centered=False, needs_rotated=False, is_point_mass=True, delta_cutoff=1e-8)
     # particle.create_multisphere(filename, 2500.0, 600_000_000, True) #this line does same as above but forces the data to be rewritten
 
     print(particle)  # for debugging purposes
@@ -42,19 +41,20 @@ def rod_series_simulation_specific(i):
     ####################################################################################
 
     # Generate Simulation
-
     simulation = lebc.ShearSimulation(particle_templete)
+    simulation.scale_domain = 1.0
     simulation.auto_setup()
-
-    if aspect_ratio >= 3:
-        simulation.relaxationtime = 0.05
-
+    simulation.body_position_print_count = [5000,5000,5000,5000,10000,10000,10000,10000]
+    simulation.relaxationtime = [0.025,0.025,0.025,0.025,0.005,0.005,0.005,0.005]
+    simulation.cycle_count = [60e6, 40e6, 40e6, 30e6, 40e6, 50e6, 50e6, 50e6]
+    simulation.extra = "2024-03-04"
     simulation.hasdate_in_foldername = False
     simulation.is_sbatch_high_priority = False
-    simulation.sbatch_time = "20-00:00:00"
+    simulation.sbatch_time = "3-00:00:00"
     simulation.use_liggghts_for_filling = True
 
     return simulation
+
 
 
 # only test rod 2, 3, 4, 5, 6
@@ -237,7 +237,7 @@ def random_angle_validate_fortran():
         already_loaded=False)
 
 
-# make_and_gen()
+make_and_gen()
 # rod_series_liggghts_init_to_fortran()
 # rod_series_validate_liggghts()
 # rod_series_validate_fortran()
