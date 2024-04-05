@@ -941,9 +941,12 @@ class ShearSimulation(object):
             file.write(sbatch_partition)
             file.write(sbatch_start_end)
 
-    def generate_liggghts_files(self, mpi_settings=[4, 4, 2], random_orientation=False):
+    def generate_liggghts_files(self, mpi_settings, random_orientation=False):
         root_name = "liggghts_" + self.root_folder_name
 
+        if not mpi_settings:
+            mpi_settings=[4, 4, 2]
+        
         if self.hasdate_in_foldername:
             root_name += "_" + str(date.today())
         if self.extra != "":
@@ -966,12 +969,12 @@ class ShearSimulation(object):
         self.generate_ligghts_particle_data_file(root_name)
 
         for i in range(len(self.volume_fractions)):
-            if not self.is_single_sphere:
+            if self.is_single_sphere:
                 self.generate_liggghts_init_file(
                     root_name, i, [2, 2, 1], random_orientation)
                 self.generate_liggghts_sbatch_file(
                     root_name, i, [2, 2, 1])
-            elif self.volume_fractions[i] < 0.1:
+            elif (self.volume_fractions[i] < 0.1 and not mpi_settings):
                 self.generate_liggghts_init_file(
                     root_name, i, [3, 2, 1], random_orientation)
                 self.generate_liggghts_sbatch_file(
@@ -1471,8 +1474,8 @@ class ShearSimulation(object):
                      linewidth=3, label='Kinetic Theory')
 
         plt.semilogy(volume_fractions, normal_stress_ave / (self.particletemplate.particle.density *
-                                                            self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=1, label="Normal " + self.particletemplate.particle.file_shape_name)
-        self.add_literature_data_to_graph(True)
+                                                            self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=0.8, linestyle='dotted', label="Normal " + self.particletemplate.particle.file_shape_name)
+        # self.add_literature_data_to_graph(True)
         plt.legend()
         plt.savefig(ligghts_root_name +
                     "/normal_stress_vs_vf_{}.pdf".format(self.particletemplate.particle.file_shape_name))
@@ -1484,8 +1487,8 @@ class ShearSimulation(object):
         plt.semilogy(vfLunmono, snLunmono, 'k-',
                      linewidth=4, label='Kinetic Theory')
         plt.semilogy(volume_fractions, shear_stress_ave / (self.particletemplate.particle.density *
-                                                           self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=1, label="Shear " + self.particletemplate.particle.file_shape_name)
-        self.add_literature_data_to_graph(is_normal=False)
+                                                           self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=0.8, linestyle='dotted',label="Shear " + self.particletemplate.particle.file_shape_name)
+        # self.add_literature_data_to_graph(is_normal=False)
         plt.legend()
         plt.savefig(ligghts_root_name + "/shear_stress_vs_vf_{}.pdf".format(
             self.particletemplate.particle.file_shape_name))
@@ -1499,8 +1502,8 @@ class ShearSimulation(object):
                      linewidth=3, label='Kinetic Theory')
 
         plt.semilogy(volume_fractions, self.liggghts_middle50quartile_last_third_normal / (self.particletemplate.particle.density *
-                                                                                           self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=1, label="Normal " + self.particletemplate.particle.file_shape_name)
-        self.add_literature_data_to_graph(True)
+                                                                                           self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2),'rs', linewidth=0.8, linestyle='dotted', label="Normal " + self.particletemplate.particle.file_shape_name)
+        # self.add_literature_data_to_graph(True)
         plt.legend()
         plt.savefig(ligghts_root_name +
                     "/quartile_normal_stress_vs_vf_{}.pdf".format(self.particletemplate.particle.file_shape_name))
@@ -1512,8 +1515,8 @@ class ShearSimulation(object):
         plt.semilogy(vfLunmono, snLunmono, 'k-',
                      linewidth=4, label='Kinetic Theory')
         plt.semilogy(volume_fractions, self.liggghts_middle50quartile_last_third_shear / (self.particletemplate.particle.density *
-                                                                                          self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=1, label="Shear " + self.particletemplate.particle.file_shape_name)
-        self.add_literature_data_to_graph(is_normal=False)
+                                                                                          self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=0.8, linestyle='dotted', label="Shear " + self.particletemplate.particle.file_shape_name)
+        # self.add_literature_data_to_graph(is_normal=False)
         plt.legend()
         plt.savefig(ligghts_root_name + "/quartile_shear_stress_vs_vf_{}.pdf".format(
             self.particletemplate.particle.file_shape_name))
@@ -1670,9 +1673,9 @@ class ShearSimulation(object):
         plt.semilogy(vfLunmono, pnLunmono, 'k-',
                      linewidth=4, label='Kinetic Theory')
         plt.plot(volume_fractions, normal_stress_ave / (self.particletemplate.particle.density *
-                                                        self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=1, label="Normal " + self.particletemplate.particle.file_shape_name)
+                                                        self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=0.8, linestyle='dotted', label="Normal " + self.particletemplate.particle.file_shape_name)
 
-        self.add_literature_data_to_graph(True)
+        # self.add_literature_data_to_graph(True)
         plt.savefig(fortran_root_name +
                     "/normal_stress_vs_vf_{}.pdf".format(self.particletemplate.particle.file_shape_name))
 
@@ -1684,8 +1687,8 @@ class ShearSimulation(object):
         plt.semilogy(vfLunmono, snLunmono, 'k-',
                      linewidth=4, label='Kinetic Theory')
         plt.plot(volume_fractions, shear_stress_ave / (self.particletemplate.particle.density *
-                                                       self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=1, label="Shear " + self.particletemplate.particle.file_shape_name)
-        self.add_literature_data_to_graph(is_normal=False)
+                                                       self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=0.8, linestyle='dotted', label="Shear " + self.particletemplate.particle.file_shape_name)
+        # self.add_literature_data_to_graph(is_normal=False)
         plt.savefig(fortran_root_name + "/shear_stress_vs_vf_{}.pdf".format(
             self.particletemplate.particle.file_shape_name))
 
@@ -2067,8 +2070,8 @@ class ShearSimulation(object):
         plt.plot(self.f_volume_fractions, self.f_normal_stress_ave / (self.particletemplate.particle.density *
                                                                       self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'gs', linewidth=1, label="Fortran Normal " + self.particletemplate.particle.file_shape_name)
         plt.plot(self.l_volume_fractions, self.l_normal_stress_ave / (self.particletemplate.particle.density *
-                                                                      self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=1, label="LIGGGHTS Normal " + self.particletemplate.particle.file_shape_name)
-        self.add_literature_data_to_graph(is_normal=True)
+                                                                      self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=0.8, linestyle='dotted', label="LIGGGHTS Normal " + self.particletemplate.particle.file_shape_name)
+        # self.add_literature_data_to_graph(is_normal=True)
         plt.legend()
         plt.savefig(general_folder_name +
                     "/normal_stress_vs_vf_{}.pdf".format(self.particletemplate.particle.file_shape_name))
@@ -2083,8 +2086,8 @@ class ShearSimulation(object):
         plt.plot(self.f_volume_fractions, self.f_shear_stress_ave / (self.particletemplate.particle.density *
                                                                      self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'gs', linewidth=1, label="Fortran Shear " + self.particletemplate.particle.file_shape_name)
         plt.plot(self.l_volume_fractions, self.l_shear_stress_ave / (self.particletemplate.particle.density *
-                                                                     self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=1, label="LIGGGHTS Shear " + self.particletemplate.particle.file_shape_name)
-        self.add_literature_data_to_graph(is_normal=False)
+                                                                     self.shearstrainrate**2 * self.particletemplate.particle.equvi_diameter**2), 'rs', linewidth=0.8, linestyle='dotted', label="LIGGGHTS Shear " + self.particletemplate.particle.file_shape_name)
+        # self.add_literature_data_to_graph(is_normal=False)
         plt.legend()
         plt.savefig(general_folder_name + "/shear_stress_vs_vf_{}.pdf".format(
             self.particletemplate.particle.file_shape_name))
@@ -2223,8 +2226,8 @@ class SimulationCompare(object):
                 plt.plot(simulation.l_volume_fractions, simulation.liggghts_middle50quartile_last_third_normal / (simulation.particletemplate.particle.density *
                                                                                                                   simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=0.8, linestyle='dotted', label=labelnames[i])
 
-            simulation.add_literature_data_to_graph(
-                is_normal=True,  color=colors[i])
+            # simulation.add_literature_data_to_graph(
+                # is_normal=True,  color=colors[i])
 
         plt.legend(loc='upper left')
         # plt.legend(
@@ -2267,8 +2270,8 @@ class SimulationCompare(object):
                 print(simulation.liggghts_middle50quartile_last_third_shear)
                 plt.plot(simulation.l_volume_fractions, simulation.liggghts_middle50quartile_last_third_shear / (simulation.particletemplate.particle.density *
                                                                                                                  simulation.shearstrainrate**2 * simulation.particletemplate.particle.equvi_diameter**2), color=colors[i], marker=markers[i], linewidth=0.8, linestyle='dotted', label=labelnames[i])
-            simulation.add_literature_data_to_graph(
-                is_normal=False, color=colors[i])
+            # simulation.add_literature_data_to_graph(
+            #     is_normal=False, color=colors[i])
         plt.legend(loc='upper left')
         # plt.legend(
         #     # plots,
@@ -2527,7 +2530,7 @@ class SimulationCompare(object):
                 cpi_folders = ""
 
                 start_count = ""
-                for j in range(4, len(simulation.volume_fractions)):
+                for j in range(0, 4):
                     # Assumes only one size radii per simulation
 
                    
@@ -2539,7 +2542,7 @@ class SimulationCompare(object):
                     cpi_folders += cpi_folder + " "
 
                     simulation.liggghts_graph_stress_vs_time_specific(j)
-                    s_length = int(len(simulation.l_shear_stress_vs_time[j-4]) *
+                    s_length = int(len(simulation.l_shear_stress_vs_time[j]) *
                                    simulation.stress_vs_time_cutoff_range[j])
                     start_count += str(s_length * simulation.body_position_print_count[j])  + " "
 
@@ -2566,15 +2569,17 @@ class SimulationCompare(object):
             print("General folder name for Interlocking_Histograms already exists")
 
         if use_liggghts:
-
-
-
             for simulation in self.simulations:
-                for j in range(4, len(simulation.volume_fractions)):
+                for j in range(0, len(simulation.volume_fractions)):
                     # Assumes only one size radii per simulation
+                    
+                    frames = 50000#simulation.body_position_print_count[j]
+                    if j <= 3:
+                        frames = 5000
 
-                    frames = simulation.body_position_print_count[j]
                     dt = simulation.delta_time * simulation.relaxationtime[j]
+                    print(frames)
+                    print(dt)
 
                     print("started {0}".format(simulation.volume_fractions[j]))
                     ligghts_folder = 'liggghts_'+simulation.root_folder_name +"_"+ simulation.extra
@@ -2598,7 +2603,9 @@ class SimulationCompare(object):
                             a.append(float(string_values[k]))
 
                         a = np.array(a)
+                        print(np.max(a))
                         a = a * frames * dt * 100
+
 
                         print(np.max(a))
 
@@ -2614,10 +2621,14 @@ class SimulationCompare(object):
                         fig = plt.figure(figsize=(8, 8))
                         ax = fig.add_subplot(111)
                         # print(a)
+                        # counts, bins, bars = plt.hist(a, 
+                        #                               bins=np.arange(
+                        #     frames * dt * 100, 5000 * frames * dt * 100, 10 * frames * dt * 100),
+                        #       ec="white", color="blue")
                         counts, bins, bars = plt.hist(a, 
                                                       bins=np.arange(
-                            frames * dt * 100, 5000 * frames * dt * 100, 10 * frames * dt * 100),
-                              ec="white", color="blue")
+                            0.0, 5.0, 0.1),
+                              ec="black", color="blue")
 
                         # print("bins")
                         # print(bins)
@@ -2676,14 +2687,14 @@ class SimulationCompare(object):
                     # print(len(counts))
 
                         plt.ylim([1, 40000])
-                        plt.xlim([0.0,4.0])
-                        plt.xticks([0.0,1.0,2.0,3.0,4.0],fontsize=25)
+                        plt.xlim([0.0,5.0])
+                        plt.xticks([0.0,1.0,2.0,3.0, 4.0],fontsize=25)
                         plt.yticks(fontsize=25)
                         plt.yscale("log")
                         plt.xlabel("Interlocking Duration ($\.γ$t)", fontsize=34)
                         plt.ylabel("Number of Interlocks", fontsize=34)
 
-                        plt.savefig(general_folder_name + "/histogram_{0}_{1}.pdf".format(series_name, j),
+                        plt.savefig(general_folder_name + "/histogram_{0}_{1}.pdf".format(simulation.root_folder_name, j),
                             bbox_inches="tight",
                         )
         #                 continue
@@ -2745,6 +2756,110 @@ class SimulationCompare(object):
 
     #         for i in range(volume_fraction[0], np.max(volume_fraction)+1):
     #             for simulation in self.simulations:
+
+
+    def interlocking_time_graph(self, use_fortran=False, use_liggghts=True, general_folder_name="", series_name="", test_lowest_vf_count=0):
+        import overlapping_circles as oc
+        if general_folder_name == "":
+            general_folder_name = "Interlocking_Histograms_" + \
+                self.simulations[0].root_folder_name
+        if series_name == "":
+            series_name = "Interlocking_Histograms_" + \
+                self.simulations[0].particletemplate.particle.file_shape_name
+
+        try:
+            os.makedirs(general_folder_name)
+            import overlapping_circles as oc
+        except OSError:
+            # print(OSError)
+            print("General folder name for Interlocking_Histograms already exists")
+        total_times = []
+        if use_liggghts:
+
+
+            markers = [ "v", "x", "s", "*", "D"]
+            colors = [
+                    "#e1893f", "#D6B11F", "#91b851", "#52a0e0",  "#1F73B8"]
+            # colors = ['Red', 'Orange', 'Pink',
+            #           'Green', 'LightBlue', 'Blue', "Purple"]
+            labelnames = [ "Curl 1",
+                      "Curl 2", "Curl 3", "Curl 4", "Curl 5"]
+
+            
+            for (i,simulation) in enumerate(self.simulations):
+                total_times.append([])
+                for j in range(0, len(simulation.volume_fractions)):
+                    # Assumes only one size radii per simulation
+                    
+                    frames = 50000#simulation.body_position_print_count[j]
+                    if j <= 3:
+                        frames = 5000
+
+                    dt = simulation.delta_time * simulation.relaxationtime[j]
+                   
+                    ligghts_folder = 'liggghts_'+simulation.root_folder_name +"_"+ simulation.extra
+                    cpi_folder = 'cpi_'+simulation.root_folder_name + \
+                        '_'
+
+                    try:
+                        collisions_file = open(ligghts_folder + '/' + cpi_folder +
+                                               str(j) + '/array.txt', "r")
+                    except OSError:
+                        # print(OSError)
+                        print("Could not find:" + ligghts_folder + '/' +
+                              cpi_folder + str(j) + '/array.txt')
+                    with collisions_file:
+                        line = collisions_file.readline()
+                        line = line[:-2]
+                        string_values = line.split(", ")
+
+                        a = []
+                        for k in range(len(string_values)):
+                            a.append(float(string_values[k]))
+
+                        a = np.array(a)
+                        a = a * frames * dt * 100
+                        total_normalizing_time = frames * dt * 1000
+
+                        total_times[i].append(np.sum(a)/total_normalizing_time)
+            
+        plt.figure(1)
+       
+        for (i, simulation) in enumerate(self.simulations):
+            plt.ylabel("Normalized Interlocking Time")
+            plt.xlabel("Solid volume fraction (ν)")
+
+            if use_liggghts:
+               
+                plt.plot(simulation.volume_fractions, total_times[i], color=colors[i], marker=markers[i], linewidth=0.8, linestyle='dotted', label=labelnames[i])
+            
+        plt.legend(loc='upper left')
+
+        plt.savefig(general_folder_name + "/normalized_interlocking_time_{}.pdf".format(
+            series_name), dpi=250)
+        plt.yscale("log")
+        plt.xscale("log")
+        plt.savefig(general_folder_name + "/normalized_log_interlocking_time_{}.pdf".format(
+            series_name), dpi=250)
+        plt.clf()
+
+        plt.figure(1)
+       
+        for (i, simulation) in enumerate(self.simulations):
+            plt.ylabel("$(σ_{yy}) / (ρd_{v}^{2} γ^{2})$")
+            plt.xlabel("Normalized Interlocking Time")
+
+            if use_liggghts:
+               
+                plt.plot(total_times[i], simulation.l_normal_stress_ave, color=colors[i], marker=markers[i], linewidth=0.8, linestyle='dotted', label=labelnames[i])
+            
+        plt.legend(loc='upper left')
+        plt.yscale("log")
+        plt.savefig(general_folder_name + "/total_times_vs_stress_{}.pdf".format(
+            series_name), dpi=250)
+        plt.clf()
+
+
 
 
 # # Just for fun color maps stuff
