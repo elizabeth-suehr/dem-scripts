@@ -383,7 +383,7 @@ fn main() {
 
                     let mut file_output = "".to_string();
 
-                    for i in 0..3000 {
+                    for i in 0..1000 {
                         file_output += &("file ".to_string() + &i.to_string() + "\n");
                         let file_name = "./".to_string()
                             + &curl.to_string()

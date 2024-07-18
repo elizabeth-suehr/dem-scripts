@@ -48,7 +48,7 @@ def curl_series_simulation_specific(i):
     simulation.scale_domain = 1.2
     simulation.auto_setup()
     simulation.body_position_print_count = [5000,5000,5000,5000,10000,50000,50000,50000]
-    simulation.relaxationtime = [0.025,0.025,0.025,0.025,0.005,0.0025,0.0025,0.0025]
+    simulation.relaxationtime = [0.025,0.025,0.025,0.025,0.005,0.0025,0.0025,0.0025]# 0.0025
     simulation.cycle_count = [60e6, 40e6, 40e6, 30e6, 80e6, 100e6, 100e6, 100e6]
     simulation.extra = "2024-02-07"
     simulation.lock_symmetry = ["false","false","false","false","false","false","false","false"]
@@ -176,6 +176,15 @@ def curl_series_validate_liggghts():
             already_loaded=False)  # if true it won't try and reload the data
         # if false it will reload data and plot all stress vs time graphs
 
+def curl_series_validate_liggghts_just_5():
+    sphere_radius_distance = [8, 7, 6, 5, 4, 3, 2]
+    specific_runs = [5]
+    for i in specific_runs:
+        simulation = curl_series_simulation_specific(str(i))
+        simulation.liggghts_graph_stress_vs_volume_fraction(
+            already_loaded=False)  # if true it won't try and reload the data
+        # if false it will reload data and plot all stress vs time graphs
+
 
 def curl_series_projected_area():
     sphere_radius_distance = [8, 7, 6, 5, 4, 3, 2]
@@ -242,7 +251,28 @@ def curls_series_validate_all():
                                    general_folder_name="Curl_Series_2024-02-07", series_name="curls")
     all.high_vf_box_whisker_compare(use_fortran=False, use_liggghts=True,
                                     general_folder_name="HighVolume_Box_2024-02-07", series_name="curls", high_volume_fractions=[7])
+    # all.high_vf_particle_height_change(use_fortran=False, use_liggghts=True,
+    #                                 general_folder_name="HighVolume_ShearLayer_2024-02-07", series_name="curls", high_volume_fractions=[7])
+
     # all.print_lowest_volumefraction_stress()
+
+
+def curls_series_shear_layers():
+    my_list = [0, 1, 2, 3, 4, 5, 6]
+
+    all_simuations = []
+    for i in my_list:
+        aspect_ratio = i
+        simulation = curl_series_simulation_specific(str(aspect_ratio))
+
+        simulation.load_vf_vs_stress(use_fortran=False, use_liggghts=True)
+
+        all_simuations.append(simulation)
+    all = lebc.SimulationCompare(all_simuations)
+    all.stress_vs_vf_graph_compare(use_fortran=False, use_liggghts=True,
+                                   general_folder_name="notneeded_Curl_Series_2024-02-07", series_name="curls")
+    all.high_vf_particle_height_change(use_fortran=False, use_liggghts=True,
+                                    general_folder_name="HighVolume_ShearLayer_2024-02-07", series_name="curls", high_volume_fractions=[7])
 
 
 def curl_extra_highvolume_fraction_box():
@@ -261,7 +291,7 @@ def curl_extra_highvolume_fraction_box():
     all = lebc.SimulationCompare(all_simuations)
     all.high_vf_box_whisker_compare(use_fortran=False, use_liggghts=True,
                                     general_folder_name="HighVolume_Box", series_name="curls", high_volume_fractions=[0],labelnames=["Curl 0", "Curl 0.25", "Curl 0.5", "Curl 0.75", "Curl 1",
-                                                                                                                                                              "Curl 2", "Curl 3", "Curl 4", "Curl 5", "Curl 6"])
+                                                                                                                                                      "Curl 2", "Curl 3", "Curl 4", "Curl 5", "Curl 6"])
     # all.print_lowest_volumefraction_stress()
 
 def rod3_series_validate_liggghts():
@@ -276,20 +306,45 @@ def curl0_7_graph_specfic():
     simulation.liggghts_graph_stress_vs_time_specific(7)
 
 
-def curl5_7_histogram_check():
-    simulation = curl_series_simulation_specific(str(5))
-    all_simulations = []
-    all_simulations.append(simulation)
-    all = lebc.SimulationCompare(all_simulations)
-    all.interlocking_time_historgram(use_liggghts= True, general_folder_name = "InterlockingHistograms", series_name = "curls", test_lowest_vf_count = 0)
+def curl_series_histogram():
+    my_list = [1, 2, 3, 4, 5]
+
+    all_simuations = []
+    for i in my_list:
+        aspect_ratio = i
+        simulation = curl_series_simulation_specific(str(aspect_ratio))
+
+        simulation.liggghts_graph_stress_vs_volume_fraction(
+            already_loaded=False)
+
+        all_simuations.append(simulation)
+    all = lebc.SimulationCompare(all_simuations)
+
+    # all.interlocking_time_historgram(use_liggghts= True, general_folder_name = "InterlockingHistograms_2024-02-07", series_name = "curls", test_lowest_vf_count = 0)
+    all.interlocking_time_graph(use_liggghts= True, general_folder_name = "InterlockingHistograms_2024-02-07", series_name = "curls", test_lowest_vf_count = 0)
+
+def curl_series_print():
+    my_list = [1, 2, 3, 4, 5]
+
+    all_simuations = []
+    for i in my_list:
+        aspect_ratio = i
+        simulation = curl_series_simulation_specific(str(aspect_ratio))
+
+        simulation.load_vf_vs_stress(use_fortran=False, use_liggghts=True)
+
+        all_simuations.append(simulation)
+    all = lebc.SimulationCompare(all_simuations)
+    all.interlocking_time_historgram_command_print()
 
 
 ########################
-make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
+# make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
 ########################
 # Call these together
 #curl_series_validate_liggghts()
 #curls_series_validate_all()
+#curls_series_shear_layers()
 #######################
 #rod3_series_validate_liggghts()
 #######################
@@ -297,5 +352,5 @@ make_and_gen(remake_base_particle_shapes=False, make_vtk_files=True)
 ########################
 #curl_series_projected_area()
 ########################
-#curl0_7_graph_specfic()
-#curl5_7_histogram_check()
+# curl_series_print()
+curl_series_histogram()

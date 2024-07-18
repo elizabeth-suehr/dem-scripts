@@ -1,0 +1,3 @@
+cargo:rerun-if-changed=build/main.rs
+cargo:rustc-env=TYPENUM_BUILD_CONSTS=/Users/elizabethsuehr/Library/Mobile Documents/com~apple~CloudDocs/School/Research/particle_bend_series/interlocking_detection/target/debug/build/typenum-d0ac2a699385ca40/out/consts.rs
+cargo:rustc-env=TYPENUM_BUILD_OP=/Users/elizabethsuehr/Library/Mobile Documents/com~apple~CloudDocs/School/Research/particle_bend_series/interlocking_detection/target/debug/build/typenum-d0ac2a699385ca40/out/op.rs

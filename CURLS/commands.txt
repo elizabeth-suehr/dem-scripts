@@ -1,0 +1,23 @@
+ls . | xargs -n1 -P4 -I% rsync -Pa % myserver.com:/srv/mail/
+
+
+./interlocking_detection domain 0.008637 0.008637 0.004318 particle curl1 simulation liggghts_s_curl1_2024-02-07 volumefractions cpi_s_curl1_4 cpi_s_curl1_5 cpi_s_curl1_6 cpi_s_curl1_7 startcount 3204000 36856000 38308000 39458000 
+./interlocking_detection domain 0.008636 0.008636 0.004318 particle curl2 simulation liggghts_s_curl2_2024-02-07 volumefractions cpi_s_curl2_4 cpi_s_curl2_5 cpi_s_curl2_6 cpi_s_curl2_7 startcount 4204000 48307000 48307000 48300001 
+./interlocking_detection domain 0.008636 0.008636 0.004318 particle curl3 simulation liggghts_s_curl3_2024-02-07 volumefractions cpi_s_curl3_4 cpi_s_curl3_5 cpi_s_curl3_6 cpi_s_curl3_7 startcount 4204000 30406000 48358000 48300001  
+./interlocking_detection domain 0.008637 0.008637 0.004318 particle curl4 simulation liggghts_s_curl4_2024-02-07 volumefractions cpi_s_curl4_4 cpi_s_curl4_5 cpi_s_curl4_6 cpi_s_curl4_7 startcount 4204000 48306000 48308000 48302000 
+./interlocking_detection domain 0.008636 0.008636 0.004318 particle curl5 simulation liggghts_s_curl5_2024-02-07 volumefractions cpi_s_curl5_4 cpi_s_curl5_5 cpi_s_curl5_6 cpi_s_curl5_7 startcount 4204000 48306000 48307000 48309000
+
+cpi_s_curl5_0 cpi_s_curl5_1 cpi_s_curl5_2 cpi_s_curl5_3
+
+
+
+./interlocking_detection domain 0.008637 0.008637 0.004318 particle curl1 simulation liggghts_s_curl1_2024-02-07 volumefractions cpi_s_curl1_0 cpi_s_curl1_1 cpi_s_curl1_2 cpi_s_curl1_3 startcount 2406000 1406000 1406000 422000 & \
+./interlocking_detection domain 0.008636 0.008636 0.004318 particle curl2 simulation liggghts_s_curl2_2024-02-07 volumefractions cpi_s_curl2_0 cpi_s_curl2_1 cpi_s_curl2_2 cpi_s_curl2_3 startcount 2406000 1406000 1405000 422000 & \
+./interlocking_detection domain 0.008636 0.008636 0.004318 particle curl3 simulation liggghts_s_curl3_2024-02-07 volumefractions cpi_s_curl3_0 cpi_s_curl3_1 cpi_s_curl3_2 cpi_s_curl3_3 startcount 2406000 1406000 1406000 422000 & \ 
+./interlocking_detection domain 0.008637 0.008637 0.004318 particle curl4 simulation liggghts_s_curl4_2024-02-07 volumefractions cpi_s_curl4_0 cpi_s_curl4_1 cpi_s_curl4_2 cpi_s_curl4_3 startcount 2406000 1406000 1406000 422000 & \
+./interlocking_detection domain 0.008636 0.008636 0.004318 particle curl5 simulation liggghts_s_curl5_2024-02-07 volumefractions cpi_s_curl5_0 cpi_s_curl5_1 cpi_s_curl5_2 cpi_s_curl5_3 startcount 2406000 1406000 1405000 423000 & \
+wait
+
+
+
+./interlocking_detection domain 0.008637 0.008637 0.004318 particle curl1 simulation liggghts_s_curl1_2024-02-07 volumefractions cpi_s_curl1_4 startcount 4204000 

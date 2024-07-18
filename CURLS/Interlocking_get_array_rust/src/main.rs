@@ -31,10 +31,13 @@ fn lines_from_file(filename: String) -> Vec<String> {
 
 fn main() {
     let file_dir_1 = [
-        "liggghts_s_curl5_2024-02-07/", // "curl_0/", "curl_5/",
+        "liggghts_s_curl1_2024-02-07/", // "curl_0/", "curl_5/",
     ];
     let file_dir_2 = [
-        "cpi_s_curl5_7/", //,
+        "cpi_s_curl1_0/",
+        "cpi_s_curl1_1/",
+        "cpi_s_curl1_2/",
+        "cpi_s_curl1_3/",
     ];
     rayon::scope(|s| {
         for i in 0..file_dir_1.len() {
