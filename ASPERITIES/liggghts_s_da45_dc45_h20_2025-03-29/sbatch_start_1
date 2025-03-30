@@ -1,0 +1,17 @@
+#!/bin/bash
+#SBATCH --job-name=liggghts_s_da45_dc45_h20_2025-03-29_1
+
+
+#SBATCH --partition=med
+#SBATCH --ntasks-per-node=32
+#SBATCH --mem=16gb
+#SBATCH --time=7-00:00:00
+#SBATCH --output=output_%j.log
+#SBATCH --error=error_%j.log
+pwd; hostname; date
+module use /home/suehr/module_files/
+module load openmpi/4.1.5
+module load vtk
+ln -s ~/Projects/LIGGGHTS_CFDRC/src/lmp_auto
+mpiexec -np 32 ./lmp_auto < in.s_da45_dc45_h20_1 
+date

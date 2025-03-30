@@ -1,0 +1,15 @@
+#!/bin/bash
+#SBATCH --job-name=s_da30_dc30_h20_vf_0.45
+
+
+#SBATCH --partition=med
+#SBATCH --ntasks=1
+#SBATCH --mem=800mb
+#SBATCH --time=7-00:00:00
+#SBATCH --output=output_%j.log
+#SBATCH --error=error_%j.log
+pwd; hostname; date
+rm ./demcfd
+ln -s ../../CODE/demcfd
+./demcfd < initialize
+date
