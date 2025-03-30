@@ -137,8 +137,8 @@ def asperities_series_validate_all():
 #         already_loaded=False)
 
 
-make_and_gen()
-# asperities_series_liggghts_init_to_fortran()
+#make_and_gen()
+asperities_series_liggghts_init_to_fortran()
 # asperities_series_validate_liggghts()
 # asperities_series_validate_fortran()
 # asperities_series_validate_all()
