@@ -83,7 +83,7 @@ def asperities_series_liggghts_init_to_fortran():
 
 
 def asperities_series_validate_liggghts():
-    my_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    my_list = [0, 1, 2, 3, 4, 5, 6, 7, 8]
     for i in my_list:
         simulation = asperities_series_simulation_specific(i)
 
@@ -94,7 +94,7 @@ def asperities_series_validate_liggghts():
 
 def asperities_series_validate_fortran():
 
-    my_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    my_list = [0, 1, 2, 3, 4, 5, 6, 7, 8]
     for i in my_list:
         aspect_ratio = i
         simulation = asperities_series_simulation_specific(aspect_ratio)
@@ -104,7 +104,7 @@ def asperities_series_validate_fortran():
 
 
 def asperities_series_validate_all():
-    my_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    my_list = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 
     all_simuations = []
     for i in my_list:
@@ -117,7 +117,7 @@ def asperities_series_validate_all():
 
     all = lebc.SimulationCompare(all_simuations)
     all.stress_vs_vf_graph_compare(use_fortran=False, use_liggghts=True,
-                                   general_folder_name="Rod_Series", series_name="rods")
+                                   general_folder_name="Asperities_Series", series_name="asperities")
     #all.print_lowest_volumefraction_stress()
 
 
@@ -137,11 +137,11 @@ def asperities_series_validate_all():
 #         already_loaded=False)
 
 
-#make_and_gen()
-asperities_series_liggghts_init_to_fortran()
+make_and_gen()
+# asperities_series_liggghts_init_to_fortran()
 # asperities_series_validate_liggghts()
 # asperities_series_validate_fortran()
-# asperities_series_validate_all()
+#asperities_series_validate_all()
 
 # Run This first, then after liggghts had mode files
 # random_angle_liggghts_and_fortran()

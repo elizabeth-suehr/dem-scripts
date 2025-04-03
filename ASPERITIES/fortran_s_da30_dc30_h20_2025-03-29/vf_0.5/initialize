@@ -1,13 +1,13 @@
 start 0.001540 0.001540 0.000777 500 150000 15000 1000 2 5 log
 
-dia 4.0000e-05 1
+dia 2.0000e-05 1
 ymd 8.7000e+09 1
 prat 3.0000e-01 1
 dens 2.5000e+03 1
 fric 0.0000e+00 1
 yie 1.9306e+30 1
 
-dia 2.0000e-04 2
+dia 1.0000e-04 2
 ymd 8.7000e+09 2
 prat 3.0000e-01 2
 dens 2.5000e+03 2
@@ -20,7 +20,7 @@ leb 100.000
 frac 0.005
 
 cvs 1 1 63
-read  1  1 219 cap
+read  1  1 1186 cap
 pri cpi
 vtp bal
 
