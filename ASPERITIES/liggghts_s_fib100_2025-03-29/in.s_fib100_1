@@ -42,7 +42,7 @@ run               1
 
 # Run briefly to eliminate potential overlaps
 fix               limcheck all slowinit xmax 1.00e-07 reset 1000 threshold 1.00e-07 start_dt 1.000e-15 end_dt 2.934e-10
-run               200000
+run               500000
 
 unfix             limcheck
 fix               m3 all property/global coefficientRestitution peratomtypepair 1 0.95
