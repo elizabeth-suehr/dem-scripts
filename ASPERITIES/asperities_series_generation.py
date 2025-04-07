@@ -76,7 +76,7 @@ def make_and_gen():
 
 
 def asperities_series_liggghts_init_to_fortran():
-    for i in range(0, 9):
+    for i in range(3, 9):
         simulation = asperities_series_simulation_specific(i)
 
         simulation.generate_fortran_read_from_liggghts_files()
@@ -138,10 +138,10 @@ def asperities_series_validate_all():
 
 
 # make_and_gen()
-# asperities_series_liggghts_init_to_fortran()
+asperities_series_liggghts_init_to_fortran()
 # asperities_series_validate_liggghts()
 # asperities_series_validate_fortran()
-asperities_series_validate_all()
+#asperities_series_validate_all()
 
 # Run This first, then after liggghts had mode files
 # random_angle_liggghts_and_fortran()
