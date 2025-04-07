@@ -104,7 +104,7 @@ def asperities_series_validate_fortran():
 
 
 def asperities_series_validate_all():
-    my_list = [1, 2, 3, 4, 5, 6, 7, 8]
+    my_list = [ 3, 4, 5, 6, 7, 8]
 
     all_simuations = []
     for i in my_list:
@@ -137,11 +137,11 @@ def asperities_series_validate_all():
 #         already_loaded=False)
 
 
-make_and_gen()
+# make_and_gen()
 # asperities_series_liggghts_init_to_fortran()
 # asperities_series_validate_liggghts()
 # asperities_series_validate_fortran()
-#asperities_series_validate_all()
+asperities_series_validate_all()
 
 # Run This first, then after liggghts had mode files
 # random_angle_liggghts_and_fortran()
